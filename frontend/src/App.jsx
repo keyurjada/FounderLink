@@ -4,6 +4,8 @@ import { ThemeProvider, createTheme } from '@mui/material/styles';
 import { CssBaseline } from '@mui/material';
 import DashboardLayout from './components/DashboardLayout.jsx';
 import Dashboard from './pages/Dashboard.jsx';
+import Login from './pages/Login.jsx';
+import Register from './pages/Register.jsx';
 
 // Custom sleek dark theme palette for Material UI
 const darkTheme = createTheme({
@@ -68,6 +70,8 @@ function App() {
       <CssBaseline />
       <Router>
         <Routes>
+          <Route path='/Register' element={<Register/>}/>
+          <Route path='/Login' element={<Login/>}/>
           <Route 
             path="/dashboard" 
             element={

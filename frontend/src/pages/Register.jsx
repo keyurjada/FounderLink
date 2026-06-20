@@ -1,241 +1,163 @@
-import React, { useState, useContext } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
-import AuthContext from '../context/AuthContext.jsx';
-import { Mail, Lock, User, UserPlus, AlertCircle, Briefcase, Rocket } from 'lucide-react';
+import React, { useState } from 'react';
+import { Height } from "@mui/icons-material";
+import { maxHeight, style } from "@mui/system";
+import registerimg from "../assets/registerimg.png";
+import axios from 'axios';
 
 const Register = () => {
-  const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [role, setRole] = useState('Talent');
-  const [error, setError] = useState('');
-  const { register } = useContext(AuthContext);
-  const navigate = useNavigate();
+  const [formData, setFormData] = useState({
+    firstName: '',
+    lastName: '',
+    role: 'investor', // default match for the solid select tile
+    phone: '',
+    email: '',
+    password: ''
+  });
 
+  const [message, setMessage] = useState('');
+  const [error, setError] = useState('');
+
+  // 2. Track general changes for standard inputs
+  const handleChange = (e) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  // 3. Handle Form Submission to Backend API
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setMessage('');
     setError('');
+
+    // Prepare payload combining First & Last name to match your backend model schema
+    const payload = {
+      name: `${formData.firstName} ${formData.lastName}`.trim(),
+      email: formData.email,
+      phone: formData.phone,
+      role: formData.role,
+      password: formData.password
+    };
+
     try {
-      await register(name, email, password, role);
-      navigate('/dashboard');
+      const response = await axios.post('http://localhost:5000/api/auth/register', payload);
+      
+      if (response.data) {
+        alert('Registration Successful!');
+        // Reset states cleanly on success
+        setFormData({ firstName: '', lastName: '', role: 'investor', phone: '', email: '', password: '' });
+      }
     } catch (err) {
-      setError(err.response?.data?.message || 'Registration failed. Please try again.');
+      setError(err.response?.data?.message || 'Registration failed. Try again.');
     }
   };
 
+  // 4. Reset Button Handler
+  const handleReset = () => {
+    setFormData({ firstName: '', lastName: '', role: 'investor', phone: '', email: '', password: '' });
+    setMessage('');
+    setError('');
+  };
+
   return (
-    <div style={styles.container}>
-      <div className="glass-card" style={styles.formCard}>
-        <h2 style={styles.title}>Create Account</h2>
-        <p style={styles.subtitle}>Join FounderLink to connect and collaborate</p>
-
-        {error && (
-          <div style={styles.errorBox}>
-            <AlertCircle size={18} /> {error}
-          </div>
-        )}
-
-        <form onSubmit={handleSubmit} style={styles.form}>
-          <div style={styles.roleSelection}>
-            <div
-              style={{
-                ...styles.roleOption,
-                borderColor: role === 'Talent' ? 'var(--secondary)' : 'var(--border-color)',
-                background: role === 'Talent' ? 'rgba(6, 182, 212, 0.05)' : 'transparent'
-              }}
-              onClick={() => setRole('Talent')}
-            >
-              <Briefcase size={20} color={role === 'Talent' ? 'var(--secondary)' : 'var(--text-muted)'} />
-              <div>
-                <div style={styles.roleTitle}>I am a Developer/Designer</div>
-                <div style={styles.roleDesc}>Looking for startup matches</div>
+  <section>
+        <div className="d-flex justify-content-center align-items-center vh-100">
+          {/* col one  */}
+  
+          <form
+            className="p-4 shadow-lg rounded bg-white hover:shadow"
+            style={{ width: "100%", maxWidth: "800px" }}
+          >
+            <div className="row row-col-2">
+             
+              <div className="col">
+                <div className="mb-3">
+                  <h1 className="text-dark text-center">Register</h1>
+                    <label
+                    for="exampleInputEmail1"
+                    className="form-label text-dark "
+                  >
+                    First Name
+                  </label>
+                  <input
+                    type="text"
+                    className="form-control"
+                    id="fname"
+                    aria-describedby="emailHelp"
+                  />
+                    <label
+                    for="exampleInputEmail1"
+                    className="form-label text-dark "
+                  >
+                    Last Name
+                  </label>
+                  <input
+                    type="text"
+                    className="form-control"
+                    id="lname"
+                    aria-describedby="emailHelp"
+                  />
+                     <label
+                    for="exampleInputEmail1"
+                    className="form-label text-dark "
+                  >
+                    Role
+                  </label>
+                  <input className="form-control" id="role-choice" list="role" name="role-choice" />
+                  <datalist id="role">
+                    <option value="investor"/>
+                    <option value="coder / developer"/>
+                  </datalist>
+                     <label
+                    for="exampleInputEmail1"
+                    className="form-label text-dark "
+                  >
+                    Mobile No.
+                  </label>
+                  <input
+                    type="tel" maxLength={10}  minLength={10}
+                    className="form-control"
+                    id="number"
+                    aria-describedby="emailHelp"
+                  />
+                  <label
+                    for="exampleInputEmail1"
+                    className="form-label text-dark "
+                  >
+                    Email address
+                  </label>
+                  <input
+                    type="email"
+                    className="form-control"
+                    id="email"
+                    aria-describedby="emailHelp"
+                  />
+                </div>
+                <div className="mb-3">
+                  <label
+                    for="exampleInputPassword1"
+                    className="form-label text-dark"
+                  >
+                    Password
+                  </label>
+                  <input
+                    type="password"
+                    className="form-control"
+                    id="exampleInputPassword1"
+                  />
+                </div>
+                <div className="text-center">
+                  <button type="submit" className="btn btn-primary w-25 mx-3">
+                    Register
+                  </button>
+                  <input type="reset" name="Clear" className="btn btn-danger w-25 mx-3 " />
+                </div>
+              </div>
+             <div className="col">
+                <img src={registerimg} alt="" className="w-100 h-100" />
               </div>
             </div>
-
-            <div
-              style={{
-                ...styles.roleOption,
-                borderColor: role === 'Founder' ? 'var(--primary)' : 'var(--border-color)',
-                background: role === 'Founder' ? 'rgba(79, 70, 229, 0.05)' : 'transparent'
-              }}
-              onClick={() => setRole('Founder')}
-            >
-              <Rocket size={20} color={role === 'Founder' ? 'var(--primary)' : 'var(--text-muted)'} />
-              <div>
-                <div style={styles.roleTitle}>I am a Startup Founder</div>
-                <div style={styles.roleDesc}>Looking to build a core team</div>
-              </div>
-            </div>
-          </div>
-
-          <div style={styles.inputGroup}>
-            <label style={styles.label}>Full Name</label>
-            <div style={styles.inputWrapper}>
-              <User size={18} style={styles.icon} />
-              <input
-                type="text"
-                required
-                placeholder="John Doe"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                style={styles.input}
-              />
-            </div>
-          </div>
-
-          <div style={styles.inputGroup}>
-            <label style={styles.label}>Email Address</label>
-            <div style={styles.inputWrapper}>
-              <Mail size={18} style={styles.icon} />
-              <input
-                type="email"
-                required
-                placeholder="you@example.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                style={styles.input}
-              />
-            </div>
-          </div>
-
-          <div style={styles.inputGroup}>
-            <label style={styles.label}>Password</label>
-            <div style={styles.inputWrapper}>
-              <Lock size={18} style={styles.icon} />
-              <input
-                type="password"
-                required
-                placeholder="••••••••"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                style={styles.input}
-              />
-            </div>
-          </div>
-
-          <button type="submit" className="btn btn-primary" style={styles.submitBtn}>
-            <UserPlus size={18} /> Sign Up
-          </button>
-        </form>
-
-        <p style={styles.footerText}>
-          Already have an account? <Link to="/login">Sign In</Link>
-        </p>
-      </div>
-    </div>
+          </form>
+        </div>
+      </section>
   );
 };
-
-const styles = {
-  container: {
-    display: 'flex',
-    justifyContent: 'center',
-    alignItems: 'center',
-    minHeight: 'calc(100vh - 80px)',
-    padding: '40px 20px'
-  },
-  formCard: {
-    width: '100%',
-    maxWidth: '480px',
-    padding: '40px',
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '24px'
-  },
-  title: {
-    fontSize: '28px',
-    fontWeight: '700',
-    color: 'var(--text-primary)',
-    textAlign: 'center'
-  },
-  subtitle: {
-    fontSize: '14px',
-    color: 'var(--text-secondary)',
-    textAlign: 'center',
-    marginTop: '-12px'
-  },
-  errorBox: {
-    background: 'rgba(239, 68, 68, 0.1)',
-    border: '1px solid var(--danger)',
-    color: '#fca5a5',
-    padding: '12px',
-    borderRadius: 'var(--radius-md)',
-    fontSize: '14px',
-    display: 'flex',
-    alignItems: 'center',
-    gap: '8px'
-  },
-  form: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '20px'
-  },
-  roleSelection: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '12px',
-    marginBottom: '10px'
-  },
-  roleOption: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '16px',
-    padding: '14px 20px',
-    border: '1.5px solid var(--border-color)',
-    borderRadius: 'var(--radius-md)',
-    cursor: 'pointer',
-    transition: 'all var(--transition-normal)'
-  },
-  roleTitle: {
-    fontSize: '15px',
-    fontWeight: '600',
-    color: 'var(--text-primary)'
-  },
-  roleDesc: {
-    fontSize: '12px',
-    color: 'var(--text-secondary)'
-  },
-  inputGroup: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '8px'
-  },
-  label: {
-    fontSize: '14px',
-    fontWeight: '500',
-    color: 'var(--text-secondary)'
-  },
-  inputWrapper: {
-    position: 'relative',
-    display: 'flex',
-    alignItems: 'center'
-  },
-  icon: {
-    position: 'absolute',
-    left: '14px',
-    color: 'var(--text-muted)'
-  },
-  input: {
-    width: '100%',
-    padding: '12px 16px 12px 42px',
-    background: 'var(--bg-secondary)',
-    border: '1px solid var(--border-color)',
-    borderRadius: 'var(--radius-md)',
-    color: 'var(--text-primary)',
-    fontSize: '15px',
-    outline: 'none',
-    transition: 'border-color var(--transition-fast)'
-  },
-  submitBtn: {
-    marginTop: '10px',
-    width: '100%'
-  },
-  footerText: {
-    fontSize: '14px',
-    color: 'var(--text-secondary)',
-    textAlign: 'center',
-    marginTop: '10px'
-  }
-};
-
 export default Register;
