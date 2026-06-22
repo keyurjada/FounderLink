@@ -5,7 +5,7 @@ import {
   FindInPage as SearchIcon, 
   Gavel as ContractIcon 
 } from '@mui/icons-material';
-import { quickActions } from '../data/mockData';
+import { shortcuts } from '../data/localFeed';
 
 const iconActionMap = {
   "edit-profile": <ProfileIcon fontSize="small" />,
@@ -31,7 +31,7 @@ const QuickActions = () => {
         </Typography>
 
         <Stack spacing={2.5}>
-          {quickActions.map((action) => (
+          {shortcuts.map((action) => (
             <Box 
               key={action.id} 
               sx={{ 

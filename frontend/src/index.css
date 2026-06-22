@@ -147,3 +147,11 @@ button {
 ::-webkit-scrollbar-thumb:hover {
   background: var(--text-muted);
 }
+
+/* Ensure placeholder text is clearly visible on dark inputs */
+input::placeholder,
+textarea::placeholder,
+select::placeholder {
+  color: #64748b !important;
+  opacity: 0.75 !important;
+}

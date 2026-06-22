@@ -7,9 +7,7 @@ const generateToken = (id) => {
   });
 };
 
-// @desc    Register a new user
-// @route   POST /api/auth/register
-// @access  Public
+// Register a new user account
 const registerUser = async (req, res) => {
   const { name, email, password, role } = req.body;
 
@@ -43,9 +41,7 @@ const registerUser = async (req, res) => {
   }
 };
 
-// @desc    Auth user & get token
-// @route   POST /api/auth/login
-// @access  Public
+// Login user and returns jwt token
 const authUser = async (req, res) => {
   const { email, password } = req.body;
 
@@ -68,9 +64,7 @@ const authUser = async (req, res) => {
   }
 };
 
-// @desc    Get user profile
-// @route   GET /api/auth/me
-// @access  Private
+// Return user profile info
 const getUserProfile = async (req, res) => {
   if (req.user) {
     res.json({

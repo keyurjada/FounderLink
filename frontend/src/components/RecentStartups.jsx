@@ -22,7 +22,7 @@ import {
   RocketLaunch as StageIcon,
   ChevronRight as ArrowIcon
 } from '@mui/icons-material';
-import { recentStartups } from '../data/mockData';
+import { startupList } from '../data/localFeed';
 
 const RecentStartups = () => {
   const [selectedStartup, setSelectedStartup] = useState(null);
@@ -46,7 +46,7 @@ const RecentStartups = () => {
   return (
     <Box>
       <Grid container spacing={3}>
-        {recentStartups.map((startup) => (
+        {startupList.map((startup) => (
           <Grid item xs={12} key={startup.id}>
             <Card 
               sx={{ 

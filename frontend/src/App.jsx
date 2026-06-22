@@ -6,6 +6,8 @@ import DashboardLayout from './components/DashboardLayout.jsx';
 import Dashboard from './pages/Dashboard.jsx';
 import Login from './pages/Login.jsx';
 import Register from './pages/Register.jsx';
+import { SessionProvider } from './context/SessionProvider.jsx';
+import ProtectedRoute from './components/ProtectedRoute.jsx';
 
 // Custom sleek dark theme palette for Material UI
 const darkTheme = createTheme({
@@ -68,22 +70,26 @@ function App() {
   return (
     <ThemeProvider theme={darkTheme}>
       <CssBaseline />
-      <Router>
-        <Routes>
-          <Route path='/Register' element={<Register/>}/>
-          <Route path='/Login' element={<Login/>}/>
-          <Route 
-            path="/dashboard" 
-            element={
-              <DashboardLayout>
-                <Dashboard />
-              </DashboardLayout>
-            } 
-          />
-          {/* Redirect all other routes to dashboard for frontend-only mockup demo */}
-          <Route path="*" element={<Navigate to="/dashboard" replace />} />
-        </Routes>
-      </Router>
+      <SessionProvider>
+        <Router>
+          <Routes>
+            <Route path='/register' element={<Register/>}/>
+            <Route path='/login' element={<Login/>}/>
+            <Route 
+              path="/dashboard" 
+              element={
+                <ProtectedRoute>
+                  <DashboardLayout>
+                    <Dashboard />
+                  </DashboardLayout>
+                </ProtectedRoute>
+              } 
+            />
+            {/* Redirect all other routes to dashboard */}
+            <Route path="*" element={<Navigate to="/dashboard" replace />} />
+          </Routes>
+        </Router>
+      </SessionProvider>
     </ThemeProvider>
   );
 }

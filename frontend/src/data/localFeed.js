@@ -1,49 +1,49 @@
-export const currentUser = {
+export const userSession = {
   name: "Alex Rivera",
   email: "alex.rivera@devmail.com",
-  role: "Talent", // 'Talent' or 'Founder'
+  role: "Talent",
   title: "Senior Full Stack Engineer",
   avatarUrl: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=80",
   skills: ["React.js", "Node.js", "Express", "MongoDB", "TypeScript", "Python"]
 };
 
-export const metricsData = [
+export const dashboardStats = [
   {
     id: "matches",
-    title: "Best Startup Matches",
+    title: "Best Matches",
     value: "14",
     trend: "+3 this week",
-    color: "#10b981" // Mint Emerald
+    color: "#10b981"
   },
   {
     id: "applications",
-    title: "Active Applications",
+    title: "Active Pitches",
     value: "4",
-    trend: "2 awaiting response",
-    color: "#f59e0b" // Amber Gold
+    trend: "2 pending response",
+    color: "#f59e0b"
   },
   {
     id: "workspaces",
-    title: "Team Workspaces",
+    title: "Workspaces Active",
     value: "2",
     trend: "1 sprint active",
-    color: "#a855f7" // Violet
+    color: "#a855f7"
   },
   {
     id: "interviews",
-    title: "Interview Invitations",
+    title: "Interviews Booked",
     value: "3",
     trend: "Next tomorrow at 10 AM",
-    color: "#f43f5e" // Coral Rose
+    color: "#f43f5e"
   }
 ];
 
-export const recentStartups = [
+export const startupList = [
   {
     id: 1,
     name: "EcoSphere AI",
-    tagline: "AI-driven carbon offset verification platform for enterprise compliance.",
-    description: "EcoSphere utilizes satellite imagery and machine learning to analyze forestry growth and verify voluntary carbon credit compliance.",
+    tagline: "AI carbon offset verification for enterprise compliance.",
+    description: "EcoSphere uses satellite imagery and machine learning to verify carbon offset details and forest growth.",
     industry: "CleanTech",
     stage: "Pre-seed",
     equity: "3.5% - 5.0%",
@@ -55,8 +55,8 @@ export const recentStartups = [
   {
     id: 2,
     name: "FinFlow Solutions",
-    tagline: "Decentralized automated bookkeeping and invoice collection for global freelancers.",
-    description: "FinFlow offers frictionless web3 invoicing tools that auto-convert crypto payments directly to fiat reserves with minimal fee slippage.",
+    tagline: "Decentralized automated invoicing for global freelancers.",
+    description: "FinFlow builds invoice collection systems that convert payments directly to stablecoins.",
     industry: "FinTech",
     stage: "Seed",
     equity: "2.0% - 4.5%",
@@ -68,8 +68,8 @@ export const recentStartups = [
   {
     id: 3,
     name: "MediPrompt",
-    tagline: "AI voice-scribe transcribing clinician sessions into structured EHR charts.",
-    description: "MediPrompt is an HIPAA-compliant ambient intelligence platform that records doctor-patient dialogues and extracts billing codes automatically.",
+    tagline: "AI voice transcription for medical clinics.",
+    description: "MediPrompt converts ambient doctor-patient dialogue directly into HIPAA-compliant clinical charts.",
     industry: "HealthTech",
     stage: "MVP Demo",
     equity: "4.0% - 6.0%",
@@ -81,8 +81,8 @@ export const recentStartups = [
   {
     id: 4,
     name: "VeloTransit",
-    tagline: "SaaS planning logistics engine for electric micromobility fleets.",
-    description: "VeloTransit solves urban last-mile battery replenishment paths using predictive fleet rebalancing patterns.",
+    tagline: "SaaS routing engine for micromobility logistics.",
+    description: "VeloTransit optimizes battery swapping paths for shared electric scooter and bike fleets.",
     industry: "Logistics",
     stage: "Seed Round A",
     equity: "1.5% - 3.0%",
@@ -93,17 +93,17 @@ export const recentStartups = [
   }
 ];
 
-export const notificationsList = [
+export const alertsList = [
   {
     id: 1,
     title: "Application Accepted",
-    desc: "Your pitch to join EcoSphere AI as a Full Stack Lead was accepted. Founder Sarah Jenkins has invited you to Workspace #2.",
+    desc: "Your pitch to join EcoSphere AI as a Full Stack Lead was accepted. Sarah Jenkins invited you to Workspace #2.",
     time: "2 hours ago",
     type: "success"
   },
   {
     id: 2,
-    title: "New Match Identified",
+    title: "New Match Found",
     desc: "VeloTransit matches 92% of your profile skills (React.js, Node.js). They are recruiting a senior co-founder.",
     time: "5 hours ago",
     type: "info"
@@ -117,14 +117,14 @@ export const notificationsList = [
   },
   {
     id: 4,
-    title: "Startup View",
+    title: "Startup Views",
     desc: "Your profile was viewed by 5 startup founders looking for developer partners this week.",
     time: "2 days ago",
     type: "info"
   }
 ];
 
-export const quickActions = [
+export const shortcuts = [
   {
     id: "edit-profile",
     title: "Optimize Co-Founder Profile",

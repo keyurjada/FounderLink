@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { 
   AppBar, 
   Toolbar, 
@@ -15,7 +16,13 @@ import {
   ListItem, 
   ListItemText, 
   ListItemAvatar,
-  Chip
+  Chip,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogContentText,
+  DialogActions,
+  Button
 } from '@mui/material';
 import { 
   Menu as MenuIcon, 
@@ -27,7 +34,8 @@ import {
   NotificationsActive as NotificationsActiveIcon
 } from '@mui/icons-material';
 import { styled, alpha } from '@mui/material/styles';
-import { currentUser, notificationsList } from '../data/mockData';
+import { SessionContext } from '../context/SessionProvider.jsx';
+import { userSession, alertsList } from '../data/localFeed';
 
 const Search = styled('div')(({ theme }) => ({
   position: 'relative',
@@ -108,6 +116,9 @@ const StyledBadge = styled(Badge)(({ theme }) => ({
 const Navbar = ({ onDrawerToggle }) => {
   const [anchorEl, setAnchorEl] = useState(null);
   const [notiAnchorEl, setNotiAnchorEl] = useState(null);
+  const [logoutDialogOpen, setLogoutDialogOpen] = useState(false);
+  const { currentUser, logoutUser } = useContext(SessionContext);
+  const navigate = useNavigate();
 
   const handleProfileMenuOpen = (event) => setAnchorEl(event.currentTarget);
   const handleProfileMenuClose = () => setAnchorEl(null);
@@ -115,7 +126,22 @@ const Navbar = ({ onDrawerToggle }) => {
   const handleNotiMenuOpen = (event) => setNotiAnchorEl(event.currentTarget);
   const handleNotiMenuClose = () => setNotiAnchorEl(null);
 
-  const unreadCount = notificationsList.length;
+  const handleSignOutClick = () => {
+    handleProfileMenuClose();
+    setLogoutDialogOpen(true);
+  };
+
+  const handleConfirmLogout = () => {
+    setLogoutDialogOpen(false);
+    logoutUser();
+    navigate('/login');
+  };
+
+  const handleCancelLogout = () => {
+    setLogoutDialogOpen(false);
+  };
+
+  const unreadCount = alertsList.length;
 
   return (
     <AppBar 
@@ -232,10 +258,10 @@ const Navbar = ({ onDrawerToggle }) => {
           {/* User profile details description */}
           <Box sx={{ display: { xs: 'none', md: 'block' }, textAlign: 'right' }}>
             <Typography variant="subtitle2" sx={{ fontWeight: 700, color: 'text.primary', lineHeight: 1.2 }}>
-              {currentUser.name}
+              {currentUser?.name || 'Guest User'}
             </Typography>
             <Typography variant="caption" sx={{ color: 'primary.main', fontWeight: 600, fontSize: '10px' }}>
-              {currentUser.title}
+              {currentUser?.title || currentUser?.role || 'Platform Guest'}
             </Typography>
           </Box>
 
@@ -253,8 +279,8 @@ const Navbar = ({ onDrawerToggle }) => {
               variant="dot"
             >
               <Avatar 
-                alt={currentUser.name} 
-                src={currentUser.avatarUrl} 
+                alt={currentUser?.name || 'User'} 
+                src={currentUser?.avatarUrl || userSession.avatarUrl} 
                 sx={{ 
                   width: 36, 
                   height: 36, 
@@ -292,7 +318,7 @@ const Navbar = ({ onDrawerToggle }) => {
           </Box>
           <Divider />
           <List sx={{ p: 0 }}>
-            {notificationsList.map((noti) => (
+            {alertsList.map((noti) => (
               <ListItem key={noti.id} alignItems="flex-start" sx={{ '&:hover': { backgroundColor: 'action.hover' }, p: 1.8 }}>
                 <ListItemAvatar sx={{ minWidth: 40 }}>
                   <Avatar sx={{ bgcolor: noti.type === 'success' ? 'success.dark' : noti.type === 'warning' ? 'warning.dark' : 'primary.dark', width: 30, height: 30 }}>
@@ -342,10 +368,10 @@ const Navbar = ({ onDrawerToggle }) => {
         >
           <Box sx={{ px: 2, py: 1.5 }}>
             <Typography variant="subtitle2" color="text.primary" fontWeight="bold">
-              {currentUser.name}
+              {currentUser?.name || 'Guest User'}
             </Typography>
             <Typography variant="caption" color="text.secondary" display="block">
-              {currentUser.email}
+              {currentUser?.email || 'guest@founderlink.com'}
             </Typography>
           </Box>
           <Divider />
@@ -358,11 +384,79 @@ const Navbar = ({ onDrawerToggle }) => {
             <Typography variant="body2">Settings</Typography>
           </MenuItem>
           <Divider />
-          <MenuItem onClick={handleProfileMenuClose} sx={{ py: 1, gap: 1.5, color: 'error.main' }}>
+          <MenuItem onClick={handleSignOutClick} sx={{ py: 1, gap: 1.5, color: 'error.main' }}>
             <LogoutIcon fontSize="small" color="inherit" />
             <Typography variant="body2">Sign Out</Typography>
           </MenuItem>
         </Menu>
+
+        {/* Premium Sign Out Confirmation Dialog */}
+        <Dialog
+          open={logoutDialogOpen}
+          onClose={handleCancelLogout}
+          PaperProps={{
+            sx: {
+              borderRadius: 4,
+              p: 2,
+              backgroundColor: 'rgba(17, 26, 22, 0.95)',
+              backdropFilter: 'blur(20px)',
+              border: '1px solid',
+              borderColor: 'divider',
+              boxShadow: '0 16px 40px rgba(0,0,0,0.6)',
+              backgroundImage: 'none'
+            }
+          }}
+        >
+          <DialogTitle sx={{ fontWeight: 800, color: 'text.primary', fontSize: '20px', pb: 1 }}>
+            Confirm Sign Out
+          </DialogTitle>
+          <DialogContent>
+            <DialogContentText sx={{ color: 'text.secondary', fontSize: '14px', lineHeight: 1.5 }}>
+              Are you sure you want to sign out? You will need to log back in to access your co-founder match pipeline and workspaces.
+            </DialogContentText>
+          </DialogContent>
+          <DialogActions sx={{ px: 3, pb: 1, gap: 1.5 }}>
+            <Button 
+              onClick={handleCancelLogout} 
+              variant="outlined" 
+              sx={{ 
+                borderRadius: 2, 
+                px: 3, 
+                py: 1, 
+                color: 'text.primary', 
+                borderColor: 'rgba(255, 255, 255, 0.1)',
+                textTransform: 'none',
+                fontWeight: 'bold',
+                '&:hover': {
+                  borderColor: 'text.primary',
+                  backgroundColor: 'rgba(255, 255, 255, 0.04)'
+                }
+              }}
+            >
+              Cancel
+            </Button>
+            <Button 
+              onClick={handleConfirmLogout} 
+              variant="contained" 
+              color="error" 
+              sx={{ 
+                borderRadius: 2, 
+                px: 3, 
+                py: 1, 
+                textTransform: 'none',
+                fontWeight: 'bold',
+                backgroundColor: '#f43f5e',
+                boxShadow: '0 4px 12px rgba(244, 63, 94, 0.2)',
+                '&:hover': {
+                  backgroundColor: '#e11d48',
+                  boxShadow: '0 6px 16px rgba(244, 63, 94, 0.35)'
+                }
+              }}
+            >
+              Sign Out
+            </Button>
+          </DialogActions>
+        </Dialog>
       </Toolbar>
     </AppBar>
   );
