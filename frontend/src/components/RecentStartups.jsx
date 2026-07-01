@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
 import { 
   Box, 
   Card, 
@@ -23,8 +23,10 @@ import {
   ChevronRight as ArrowIcon
 } from '@mui/icons-material';
 import { startupList } from '../data/localFeed';
+import { SessionContext } from '../context/SessionProvider.jsx';
 
 const RecentStartups = () => {
+  const { currentUser } = useContext(SessionContext);
   const [selectedStartup, setSelectedStartup] = useState(null);
   const [pitchText, setPitchText] = useState('');
   const [snackbarOpen, setSnackbarOpen] = useState(false);
@@ -39,6 +41,22 @@ const RecentStartups = () => {
   };
 
   const handleSubmitApplication = () => {
+    const activePitches = JSON.parse(localStorage.getItem('active_pitches') || '[]');
+    const newPitch = {
+      id: Date.now(),
+      startupName: selectedStartup.name,
+      founder: selectedStartup.founder,
+      pitchText: pitchText,
+      status: "Under Review",
+      time: "Just now",
+      color: "warning"
+    };
+    activePitches.push(newPitch);
+    localStorage.setItem('active_pitches', JSON.stringify(activePitches));
+
+    // Alert other widgets/menus that storage changed
+    window.dispatchEvent(new Event('storage'));
+
     setSnackbarOpen(true);
     handleCloseApply();
   };

@@ -1,4 +1,5 @@
 import React from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { 
   Drawer, 
   List, 
@@ -24,7 +25,7 @@ import {
 const drawerWidth = 260;
 
 const menuItems = [
-  { text: 'Dashboard', icon: <DashboardIcon />, path: '/dashboard', active: true },
+  { text: 'Dashboard', icon: <DashboardIcon />, path: '/dashboard' },
   { text: 'Co-Founder Matcher', icon: <SearchIcon />, path: '/match' },
   { text: 'Applications', icon: <SendIcon />, path: '/applications' },
   { text: 'Team Workspaces', icon: <GroupWorkIcon />, path: '/workspaces' },
@@ -37,6 +38,9 @@ const secondaryMenuItems = [
 ];
 
 const Sidebar = ({ mobileOpen, onDrawerToggle }) => {
+  const location = useLocation();
+  const navigate = useNavigate();
+
   const drawerContent = (
     <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%', backgroundColor: 'background.paper' }}>
       <Toolbar />
@@ -44,71 +48,90 @@ const Sidebar = ({ mobileOpen, onDrawerToggle }) => {
       
       {/* Primary items */}
       <List sx={{ px: 1.5, py: 2, flexGrow: 1 }}>
-        {menuItems.map((item) => (
-          <ListItem key={item.text} disablePadding sx={{ mb: 0.5 }}>
-            <ListItemButton
-              selected={item.active}
-              sx={{
-                borderRadius: 2,
-                py: 1.2,
-                px: 2,
-                color: item.active ? 'primary.main' : 'text.secondary',
-                backgroundColor: item.active ? 'rgba(245, 158, 11, 0.08)' : 'transparent',
-                '&.Mui-selected:hover': {
-                  backgroundColor: 'rgba(245, 158, 11, 0.12)',
-                },
-                '&:hover': {
-                  backgroundColor: 'action.hover',
-                  color: 'text.primary',
-                  '& .MuiListItemIcon-root': {
+        {menuItems.map((item) => {
+          const isActive = location.pathname === item.path;
+          return (
+            <ListItem key={item.text} disablePadding sx={{ mb: 0.5 }}>
+              <ListItemButton
+                selected={isActive}
+                onClick={() => {
+                  navigate(item.path);
+                  if (mobileOpen) onDrawerToggle();
+                }}
+                sx={{
+                  borderRadius: 2,
+                  py: 1.2,
+                  px: 2,
+                  color: isActive ? 'primary.main' : 'text.secondary',
+                  backgroundColor: isActive ? 'rgba(245, 158, 11, 0.08)' : 'transparent',
+                  '&.Mui-selected:hover': {
+                    backgroundColor: 'rgba(245, 158, 11, 0.12)',
+                  },
+                  '&:hover': {
+                    backgroundColor: 'action.hover',
                     color: 'text.primary',
+                    '& .MuiListItemIcon-root': {
+                      color: 'text.primary',
+                    }
                   }
-                }
-              }}
-            >
-              <ListItemIcon sx={{ minWidth: 40, color: item.active ? 'primary.main' : 'text.secondary' }}>
-                {item.icon}
-              </ListItemIcon>
-              <ListItemText 
-                primary={item.text} 
-                primaryTypographyProps={{ fontSize: '14px', fontWeight: item.active ? 600 : 500 }}
-              />
-            </ListItemButton>
-          </ListItem>
-        ))}
+                }}
+              >
+                <ListItemIcon sx={{ minWidth: 40, color: isActive ? 'primary.main' : 'text.secondary' }}>
+                  {item.icon}
+                </ListItemIcon>
+                <ListItemText 
+                  primary={item.text} 
+                  primaryTypographyProps={{ fontSize: '14px', fontWeight: isActive ? 600 : 500 }}
+                />
+              </ListItemButton>
+            </ListItem>
+          );
+        })}
       </List>
 
       <Divider />
 
       {/* Secondary items */}
       <List sx={{ px: 1.5, py: 2 }}>
-        {secondaryMenuItems.map((item) => (
-          <ListItem key={item.text} disablePadding sx={{ mb: 0.5 }}>
-            <ListItemButton
-              sx={{
-                borderRadius: 2,
-                py: 1.2,
-                px: 2,
-                color: 'text.secondary',
-                '&:hover': {
-                  backgroundColor: 'action.hover',
-                  color: 'text.primary',
-                  '& .MuiListItemIcon-root': {
+        {secondaryMenuItems.map((item) => {
+          const isActive = location.pathname === item.path;
+          return (
+            <ListItem key={item.text} disablePadding sx={{ mb: 0.5 }}>
+              <ListItemButton
+                selected={isActive}
+                onClick={() => {
+                  navigate(item.path);
+                  if (mobileOpen) onDrawerToggle();
+                }}
+                sx={{
+                  borderRadius: 2,
+                  py: 1.2,
+                  px: 2,
+                  color: isActive ? 'primary.main' : 'text.secondary',
+                  backgroundColor: isActive ? 'rgba(245, 158, 11, 0.08)' : 'transparent',
+                  '&.Mui-selected:hover': {
+                    backgroundColor: 'rgba(245, 158, 11, 0.12)',
+                  },
+                  '&:hover': {
+                    backgroundColor: 'action.hover',
                     color: 'text.primary',
+                    '& .MuiListItemIcon-root': {
+                      color: 'text.primary',
+                    }
                   }
-                }
-              }}
-            >
-              <ListItemIcon sx={{ minWidth: 40, color: 'text.secondary' }}>
-                {item.icon}
-              </ListItemIcon>
-              <ListItemText 
-                primary={item.text} 
-                primaryTypographyProps={{ fontSize: '14px', fontWeight: 500 }}
-              />
-            </ListItemButton>
-          </ListItem>
-        ))}
+                }}
+              >
+                <ListItemIcon sx={{ minWidth: 40, color: isActive ? 'primary.main' : 'text.secondary' }}>
+                  {item.icon}
+                </ListItemIcon>
+                <ListItemText 
+                  primary={item.text} 
+                  primaryTypographyProps={{ fontSize: '14px', fontWeight: isActive ? 600 : 500 }}
+                />
+              </ListItemButton>
+            </ListItem>
+          );
+        })}
       </List>
     </Box>
   );

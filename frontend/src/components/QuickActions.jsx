@@ -1,10 +1,6 @@
 import React from 'react';
 import { Card, CardContent, Typography, Button, Box, Stack } from '@mui/material';
-import { 
-  PersonOutline as ProfileIcon, 
-  FindInPage as SearchIcon, 
-  Gavel as ContractIcon 
-} from '@mui/icons-material';
+import { PersonOutline as ProfileIcon, FindInPage as SearchIcon, Gavel as ContractIcon } from '@mui/icons-material';
 import { shortcuts } from '../data/localFeed';
 
 const iconActionMap = {

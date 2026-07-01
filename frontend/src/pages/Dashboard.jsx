@@ -1,4 +1,4 @@
-import React, { useContext } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { Grid, Typography, Box } from '@mui/material';
 import { SessionContext } from '../context/SessionProvider.jsx';
 import MetricCard from '../components/MetricCard.jsx';
@@ -8,6 +8,27 @@ import { dashboardStats } from '../data/localFeed';
 
 export default function Dashboard() {
   const { currentUser } = useContext(SessionContext);
+  const [stats, setStats] = useState(dashboardStats);
+
+  useEffect(() => {
+    const updateStats = () => {
+      const pitches = JSON.parse(localStorage.getItem('active_pitches') || '[]');
+      setStats(dashboardStats.map(s => {
+        if (s.id === 'applications') {
+          return {
+            ...s,
+            value: pitches.length.toString(),
+            trend: `${pitches.filter(p => p.status === 'Under Review' || p.status === 'Pending').length} pending response`
+          };
+        }
+        return s;
+      }));
+    };
+
+    updateStats();
+    window.addEventListener('storage', updateStats);
+    return () => window.removeEventListener('storage', updateStats);
+  }, []);
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
@@ -21,7 +42,7 @@ export default function Dashboard() {
       </Box>
 
       <Grid container spacing={3}>
-        {dashboardStats.map((item) => (
+        {stats.map((item) => (
           <Grid item xs={12} sm={6} md={3} key={item.id}>
             <MetricCard {...item} />
           </Grid>
