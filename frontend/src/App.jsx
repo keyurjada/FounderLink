@@ -14,6 +14,7 @@ import Premium from './pages/Premium.jsx';
 import Help from './pages/Help.jsx';
 import { SessionProvider } from './context/SessionProvider.jsx';
 import ProtectedRoute from './components/ProtectedRoute.jsx';
+import Ideaform from './pages/Ideaform.jsx';
 
 // Custom sleek dark theme palette for Material UI
 const darkTheme = createTheme({
@@ -92,6 +93,16 @@ function App() {
               } 
             />
             <Route 
+              path="/Ideaform" 
+              element={
+                <ProtectedRoute>
+                  <DashboardLayout>
+                    <Ideaform />
+                  </DashboardLayout>
+                </ProtectedRoute>
+              } 
+            />
+             <Route 
               path="/match" 
               element={
                 <ProtectedRoute>

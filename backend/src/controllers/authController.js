@@ -1,8 +1,10 @@
 import jwt from 'jsonwebtoken';
 import User from '../models/User.js';
 
+const JWT_SECRET = process.env.JWT_SECRET || 'founderlink-local-secret';
+
 const generateToken = (id) => {
-  return jwt.sign({ id }, process.env.JWT_SECRET, {
+  return jwt.sign({ id }, JWT_SECRET, {
     expiresIn: '30d'
   });
 };
