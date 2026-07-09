@@ -155,3 +155,20 @@ select::placeholder {
   color: #64748b !important;
   opacity: 0.75 !important;
 }
+
+/* Page Transition Keyframes (Hardware Accelerated, Opacity-Only to prevent layout repaints) */
+@keyframes fadeInPage {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.page-fade-in {
+  animation: fadeInPage 0.15s ease-out forwards;
+  will-change: opacity;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}

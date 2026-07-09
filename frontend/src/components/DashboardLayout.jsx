@@ -17,6 +17,7 @@ const DashboardLayout = ({ children }) => {
       <Sidebar mobileOpen={mobileOpen} onDrawerToggle={handleDrawerToggle} />
       <Box
         component="main"
+        className="page-fade-in"
         sx={{
           flexGrow: 1,
           p: { xs: 2, sm: 3, md: 4 },

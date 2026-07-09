@@ -38,6 +38,7 @@ const Register = () => {
 
   return (
     <section 
+      className="page-fade-in"
       style={{ 
         backgroundColor: "#030706",
         backgroundImage: `

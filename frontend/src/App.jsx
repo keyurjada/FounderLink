@@ -15,6 +15,7 @@ import Help from './pages/Help.jsx';
 import { SessionProvider } from './context/SessionProvider.jsx';
 import ProtectedRoute from './components/ProtectedRoute.jsx';
 import Ideaform from './pages/Ideaform.jsx';
+import Home from './pages/Home.jsx';
 
 // Custom sleek dark theme palette for Material UI
 const darkTheme = createTheme({
@@ -80,6 +81,7 @@ function App() {
       <SessionProvider>
         <Router>
           <Routes>
+            <Route path="/" element={<Home />} />
             <Route path='/register' element={<Register/>}/>
             <Route path='/login' element={<Login/>}/>
             <Route 

@@ -117,25 +117,61 @@ export const SessionProvider = ({ children }) => {
   };
 
   const registerUser = async (name, email, password, role) => {
-    const data = await requestJson('/register', {
-      method: 'POST',
-      body: JSON.stringify({ name, email, password, role })
-    });
+    try {
+      const data = await requestJson('/register', {
+        method: 'POST',
+        body: JSON.stringify({ name, email, password, role })
+      });
 
-    localStorage.setItem('auth_token', data.token);
-    localStorage.setItem('active_session', JSON.stringify({
-      name: data.name,
-      email: data.email,
-      role: data.role,
-      title: data.title || (data.role === 'Founder' ? 'Founder' : 'Software Engineer')
-    }));
-    setCurrentUser({
-      name: data.name,
-      email: data.email,
-      role: data.role,
-      title: data.title || (data.role === 'Founder' ? 'Founder' : 'Software Engineer')
-    });
-    return data;
+      localStorage.setItem('auth_token', data.token);
+      localStorage.setItem('active_session', JSON.stringify({
+        name: data.name,
+        email: data.email,
+        role: data.role,
+        title: data.title || (data.role === 'Founder' ? 'Founder' : 'Software Engineer')
+      }));
+      setCurrentUser({
+        name: data.name,
+        email: data.email,
+        role: data.role,
+        title: data.title || (data.role === 'Founder' ? 'Founder' : 'Software Engineer')
+      });
+      return data;
+    } catch (error) {
+      const stored = localStorage.getItem('saved_profiles');
+      let userList = [];
+      try {
+        userList = stored ? JSON.parse(stored) : [...demoUsers];
+      } catch (e) {
+        userList = [...demoUsers];
+      }
+
+      const exists = userList.some((item) => item.email.toLowerCase() === email.toLowerCase());
+      if (exists) {
+        throw new Error('Account with this email already exists.');
+      }
+
+      const payload = {
+        name,
+        email,
+        password,
+        role,
+        title: role === 'Founder' ? 'Startup Founder' : 'Developer / Designer'
+      };
+
+      userList.push(payload);
+      localStorage.setItem('saved_profiles', JSON.stringify(userList));
+
+      const data = {
+        name: payload.name,
+        email: payload.email,
+        role: payload.role,
+        title: payload.title
+      };
+      localStorage.setItem('active_session', JSON.stringify(data));
+      setCurrentUser(data);
+      return data;
+    }
   };
 
   const logoutUser = () => {
