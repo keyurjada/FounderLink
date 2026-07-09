@@ -5,27 +5,27 @@ import { Search as SearchIcon, FilterList as FilterIcon, Chat as ChatIcon } from
 const mockCandidates = [
   {
     id: 1,
-    name: "Marcus Vance",
+    name: "Harsh Shah",
     title: "AI Researcher & Data Engineer",
-    avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80",
+    avatar: "https://media.licdn.com/dms/image/v2/D4D03AQFkhRKa6nIWaA/profile-displayphoto-crop_800_800/B4DZfKFIwMGkAI-/0/1751442034266?e=1785369600&v=beta&t=sqgpjCQFJeAnABF_Jc7p41z7zDbme8qgQP2Az1Un9CI",
     skills: ["Python", "PyTorch", "TensorFlow", "Scikit-Learn"],
     bio: "Ex-Google researcher specializing in NLP and LLM finetuning. Looking for a product-focused co-founder to build AI carbon accounting workflows.",
     matchScore: 94
   },
   {
     id: 2,
-    name: "Elena Rostova",
+    name: "Kaushal Dudakiya",
     title: "Chief Product Officer / UI Architect",
-    avatar: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&auto=format&fit=crop&q=80",
+    avatar: "https://media.licdn.com/dms/image/v2/D4D03AQFaRAg9Q_l7Hg/profile-displayphoto-shrink_800_800/profile-displayphoto-shrink_800_800/0/1689217191833?e=1785369600&v=beta&t=tX_Klj3e_NkUuBJPseUDFZj4j2KaIIFjOWKeW7vvY5s",
     skills: ["Figma", "React.js", "TailwindCSS", "Product Strategy"],
     bio: "Designed products with 10M+ active users. Passionate about sustainability. Seeking a technical backend co-founder for a micro-mobility platform.",
     matchScore: 89
   },
   {
     id: 3,
-    name: "Devon Carter",
+    name: "Punit Nakum",
     title: "Senior Backend Developer",
-    avatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&auto=format&fit=crop&q=80",
+    avatar: "https://media.licdn.com/dms/image/v2/D4D35AQEa4eewfNaISw/profile-framedphoto-shrink_800_800/B4DZ7RQsbxJ8AY-/0/1781627275389?e=1784217600&v=beta&t=lXEeVpI6zCsYyFnhzLr3ZqJRfctE_xmaf_aYHYYvrBA",
     skills: ["Golang", "PostgreSQL", "Docker", "Kubernetes", "gRPC"],
     bio: "Infrastructure engineer with startup experience. Built high-scale financial ledgers. Looking to join an early-stage fintech team.",
     matchScore: 85

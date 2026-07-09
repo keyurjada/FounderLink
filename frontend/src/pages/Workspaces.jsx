@@ -3,10 +3,10 @@ import { Box, Typography, Grid, Paper, Card, CardContent, IconButton, Button, Di
 import { ArrowForward as MoveRightIcon, ArrowBack as MoveLeftIcon, Add as AddIcon, Delete as DeleteIcon } from '@mui/icons-material';
 
 const initialTasks = [
-  { id: 1, title: "Refactor SessionProvider state", assignee: "Alex Rivera", status: "todo" },
-  { id: 2, title: "Design Landing Page layouts", assignee: "Elena Rostova", status: "inprogress" },
-  { id: 3, title: "Setup MongoDB Atlas sandbox", assignee: "Sarah Jenkins", status: "completed" },
-  { id: 4, title: "Setup Mongoose middleware hooks", assignee: "Alex Rivera", status: "inprogress" }
+  { id: 1, title: "Refactor SessionProvider state", assignee: "Aryan Kapadiya", status: "todo" },
+  { id: 2, title: "Design Landing Page layouts", assignee: "Savan Detroja", status: "inprogress" },
+  { id: 3, title: "Setup MongoDB Atlas sandbox", assignee: "Jevin Parmar", status: "completed" },
+  { id: 4, title: "Setup Mongoose middleware hooks", assignee: "Aryan Kapadiya", status: "inprogress" }
 ];
 
 export default function Workspaces() {
