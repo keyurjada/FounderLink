@@ -33,7 +33,6 @@ const menuItems = [
 ];
 
 const secondaryMenuItems = [
-  { text: 'Premium Access', icon: <ShieldIcon color="warning" />, path: '/premium' },
   { text: 'Help Center', icon: <HelpIcon />, path: '/help' }
 ];
 

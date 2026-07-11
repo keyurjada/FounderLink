@@ -10,7 +10,6 @@ import Match from './pages/Match.jsx';
 import Applications from './pages/Applications.jsx';
 import Workspaces from './pages/Workspaces.jsx';
 import Settings from './pages/Settings.jsx';
-import Premium from './pages/Premium.jsx';
 import Help from './pages/Help.jsx';
 import { SessionProvider } from './context/SessionProvider.jsx';
 import ProtectedRoute from './components/ProtectedRoute.jsx';
@@ -140,16 +139,6 @@ function App() {
                 <ProtectedRoute>
                   <DashboardLayout>
                     <Settings />
-                  </DashboardLayout>
-                </ProtectedRoute>
-              } 
-            />
-            <Route 
-              path="/premium" 
-              element={
-                <ProtectedRoute>
-                  <DashboardLayout>
-                    <Premium />
                   </DashboardLayout>
                 </ProtectedRoute>
               } 

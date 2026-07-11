@@ -16,7 +16,7 @@ const Home = () => {
             <span style={styles.gradientText}>Startup Co-Founder</span>
           </h1>
           <p style={styles.subtitle}>
-            FounderLink bridges the gap between visionaries, developers, designers, and investors. Build the next big thing, together.
+            FounderLink helps startup founders connect with developers, designers, and business partners to build projects together.
           </p>
           <div style={styles.heroActions}>
             <Link to="/register" style={styles.btnPrimary}>
@@ -31,18 +31,18 @@ const Home = () => {
         <section style={styles.features}>
           <div style={styles.card}>
             <Users size={32} color="#f59e0b" style={{ marginBottom: '16px' }} />
-            <h3 style={styles.cardTitle}>Co-Founder Matching</h3>
-            <p style={styles.cardDesc}>Find co-founders with complementary technical or business skillsets based on matching algorithms.</p>
+            <h3 style={styles.cardTitle}>Find Co-Founders</h3>
+            <p style={styles.cardDesc}>Search and connect with partners who have the skills you need for your project.</p>
           </div>
           <div style={styles.card}>
             <Code size={32} color="#10b981" style={{ marginBottom: '16px' }} />
-            <h3 style={styles.cardTitle}>Workspace Board</h3>
-            <p style={styles.cardDesc}>Collaborate in shared workspaces using integrated Kanban boards and task management.</p>
+            <h3 style={styles.cardTitle}>Shared Workspaces</h3>
+            <p style={styles.cardDesc}>Work together with your team using simple task boards.</p>
           </div>
           <div style={styles.card}>
             <Award size={32} color="#6366f1" style={{ marginBottom: '16px' }} />
-            <h3 style={styles.cardTitle}>Match Pipelines</h3>
-            <p style={styles.cardDesc}>Manage matching applications, review sent pitches, and check co-founder responses.</p>
+            <h3 style={styles.cardTitle}>Track Applications</h3>
+            <p style={styles.cardDesc}>View your sent requests, check responses, and manage applications in one place.</p>
           </div>
         </section>
       </div>

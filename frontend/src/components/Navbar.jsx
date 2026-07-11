@@ -184,7 +184,7 @@ const Navbar = ({ onDrawerToggle }) => {
               <SearchIcon fontSize="small" />
             </SearchIconWrapper>
             <StyledInputBase
-              placeholder="Search co-founders..."
+              placeholder="Search Startups, Developers..."
               inputProps={{ 'aria-label': 'search' }}
             />
             {/* Keyboard shortcut icon indicator */}
@@ -280,14 +280,17 @@ const Navbar = ({ onDrawerToggle }) => {
             >
               <Avatar 
                 alt={currentUser?.name || 'User'} 
-                src={currentUser?.avatarUrl || userSession.avatarUrl} 
                 sx={{ 
                   width: 36, 
                   height: 36, 
                   border: '2px solid', 
-                  borderColor: 'primary.main' 
+                  borderColor: 'primary.main',
+                  backgroundColor: 'background.default',
+                  color: 'text.secondary'
                 }}
-              />
+              >
+                <PersonIcon fontSize="small" />
+              </Avatar>
             </StyledBadge>
           </IconButton>
         </Box>
