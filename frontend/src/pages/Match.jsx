@@ -23,9 +23,9 @@ const mockCandidates = [
   },
   {
     id: 3,
-    name: "Punit Nakum",
+    name: "Prof. Jevin Parmar",
     title: "Senior Backend Developer",
-    avatar: "https://media.licdn.com/dms/image/v2/D4D35AQEa4eewfNaISw/profile-framedphoto-shrink_800_800/B4DZ7RQsbxJ8AY-/0/1781627275389?e=1784217600&v=beta&t=lXEeVpI6zCsYyFnhzLr3ZqJRfctE_xmaf_aYHYYvrBA",
+    avatar: "https://media.licdn.com/dms/image/v2/D5603AQHo23MM6D0Uew/profile-displayphoto-crop_800_800/B56Z3fgY.aKkAI-/0/1777571310804?e=1785369600&v=beta&t=yaiO_D6qNOacghu2DvpvgdPDTdJFo7FY3AaTLl3AG00",
     skills: ["Golang", "PostgreSQL", "Docker", "Kubernetes", "gRPC"],
     bio: "Infrastructure engineer with startup experience. Built high-scale financial ledgers. Looking to join an early-stage fintech team.",
     matchScore: 85

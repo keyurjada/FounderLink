@@ -207,7 +207,7 @@ const Navbar = ({ onDrawerToggle }) => {
                 pointerEvents: 'none'
               }}
             >
-              ⌘K
+              K
             </Box>
           </Search>
 
