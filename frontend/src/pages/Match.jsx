@@ -153,12 +153,7 @@ export default function Match() {
                     ))}
                   </Box>
 
-                  <Button 
-                    variant="contained" 
-                    fullWidth 
-                    startIcon={<ChatIcon />}
-                    sx={{ borderRadius: 2, py: 1, textTransform: 'none', fontWeight: 'bold' }}
-                  >
+                  <Button variant="contained" fullWidth startIcon={<ChatIcon />} sx={{ borderRadius: 2, py: 1, textTransform: 'none', fontWeight: 'bold' }}>
                     Connect & Chat
                   </Button>
                 </Box>
