@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useContext } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { 
   Drawer, 
@@ -21,24 +21,40 @@ import {
   HelpOutline as HelpIcon,
   AdminPanelSettings as ShieldIcon
 } from '@mui/icons-material';
+import { SessionContext } from '../context/SessionProvider.jsx';
 
 const drawerWidth = 260;
-
-const menuItems = [
-  { text: 'Dashboard', icon: <DashboardIcon />, path: '/dashboard' },
-  { text: 'Co-Founder Matcher', icon: <SearchIcon />, path: '/match' },
-  { text: 'Applications', icon: <SendIcon />, path: '/applications' },
-  { text: 'Team Workspaces', icon: <GroupWorkIcon />, path: '/workspaces' },
-  { text: 'Settings', icon: <SettingsIcon />, path: '/settings' }
-];
 
 const secondaryMenuItems = [
   { text: 'Help Center', icon: <HelpIcon />, path: '/help' }
 ];
 
 const Sidebar = ({ mobileOpen, onDrawerToggle }) => {
+  const { currentUser } = useContext(SessionContext);
   const location = useLocation();
   const navigate = useNavigate();
+
+  const menuItems = [
+    { text: 'Dashboard', icon: <DashboardIcon />, path: '/dashboard' }
+  ];
+
+  if (currentUser?.role === 'Founder') {
+    menuItems.push(
+      { text: 'Create Startup Project', icon: <SendIcon />, path: '/Ideaform' },
+      { text: 'Browse Coders', icon: <SearchIcon />, path: '/match' },
+      { text: 'Received Applications & Requests', icon: <SendIcon />, path: '/applications' }
+    );
+  } else {
+    menuItems.push(
+      { text: 'Explore Startups', icon: <SearchIcon />, path: '/match' },
+      { text: 'Sent Applications', icon: <SendIcon />, path: '/applications' }
+    );
+  }
+
+  menuItems.push(
+    { text: 'Team Workspace', icon: <GroupWorkIcon />, path: '/workspaces' },
+    { text: 'Settings', icon: <SettingsIcon />, path: '/settings' }
+  );
 
   const drawerContent = (
     <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%', backgroundColor: 'background.paper' }}>

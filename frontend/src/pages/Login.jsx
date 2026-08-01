@@ -1,4 +1,4 @@
-import React, { useState, useContext } from "react";
+import React, { useState, useContext, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { SessionContext } from "../context/SessionProvider.jsx";
 import loginimg from "../assets/loginimg.png";
@@ -7,8 +7,14 @@ const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [errMessage, setErrMessage] = useState("");
-  const { loginUser } = useContext(SessionContext);
+  const { loginUser, currentUser } = useContext(SessionContext);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    if (currentUser) {
+      navigate("/dashboard", { replace: true });
+    }
+  }, [currentUser, navigate]);
 
   const handleFormSubmit = async (e) => {
     e.preventDefault();

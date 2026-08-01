@@ -1,4 +1,4 @@
-import React, { useState, useContext } from 'react';
+import React, { useState, useContext, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
   AppBar, 
@@ -117,8 +117,9 @@ const Navbar = ({ onDrawerToggle }) => {
   const [anchorEl, setAnchorEl] = useState(null);
   const [notiAnchorEl, setNotiAnchorEl] = useState(null);
   const [logoutDialogOpen, setLogoutDialogOpen] = useState(false);
-  const { currentUser, logoutUser } = useContext(SessionContext);
+  const { currentUser, logoutUser, fetchApi } = useContext(SessionContext);
   const navigate = useNavigate();
+  const [notifications, setNotifications] = useState([]);
 
   const handleProfileMenuOpen = (event) => setAnchorEl(event.currentTarget);
   const handleProfileMenuClose = () => setAnchorEl(null);
@@ -141,7 +142,45 @@ const Navbar = ({ onDrawerToggle }) => {
     setLogoutDialogOpen(false);
   };
 
-  const unreadCount = alertsList.length;
+  useEffect(() => {
+    if (!currentUser) return;
+    const loadNotis = async () => {
+      try {
+        const data = await fetchApi('/notifications');
+        if (data && data.length > 0) {
+          const mapped = data.map(n => ({
+            id: n._id,
+            title: n.title,
+            desc: n.message,
+            time: new Date(n.createdAt).toLocaleTimeString(),
+            type: n.type,
+            isRead: n.isRead
+          }));
+          setNotifications(mapped);
+        } else {
+          setNotifications([]);
+        }
+      } catch (e) {
+        setNotifications([]);
+      }
+    };
+    loadNotis();
+  }, [currentUser, fetchApi]);
+
+  const handleMarkAllRead = async () => {
+    try {
+      await Promise.all(
+        notifications.filter(n => !n.isRead).map(n =>
+          fetchApi(`/notifications/${n.id}/read`, { method: 'PUT' })
+        )
+      );
+    } catch (e) {
+      console.warn("Backend read failed:", e);
+    }
+    setNotifications(notifications.map(n => ({ ...n, isRead: true })));
+  };
+
+  const unreadCount = notifications.filter(n => !n.isRead).length;
 
   return (
     <AppBar 
@@ -184,7 +223,7 @@ const Navbar = ({ onDrawerToggle }) => {
               <SearchIcon fontSize="small" />
             </SearchIconWrapper>
             <StyledInputBase
-              placeholder="Search Startups, Developers..."
+              placeholder={currentUser?.role === 'Founder' ? "Search Developers, Talents..." : "Search Startup Projects..."}
               inputProps={{ 'aria-label': 'search' }}
             />
             {/* Keyboard shortcut icon indicator */}
@@ -317,36 +356,48 @@ const Navbar = ({ onDrawerToggle }) => {
         >
           <Box sx={{ p: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <Typography variant="subtitle1" fontWeight="bold">Notifications</Typography>
-            <Typography variant="caption" sx={{ color: 'primary.main', cursor: 'pointer', fontWeight: 600 }}>Mark all read</Typography>
+            <Typography onClick={handleMarkAllRead} variant="caption" sx={{ color: 'primary.main', cursor: 'pointer', fontWeight: 600 }}>Mark all read</Typography>
           </Box>
           <Divider />
           <List sx={{ p: 0 }}>
-            {alertsList.map((noti) => (
-              <ListItem key={noti.id} alignItems="flex-start" sx={{ '&:hover': { backgroundColor: 'action.hover' }, p: 1.8 }}>
-                <ListItemAvatar sx={{ minWidth: 40 }}>
-                  <Avatar sx={{ bgcolor: noti.type === 'success' ? 'success.dark' : noti.type === 'warning' ? 'warning.dark' : 'primary.dark', width: 30, height: 30 }}>
-                    <NotificationsActiveIcon sx={{ fontSize: 16 }} />
-                  </Avatar>
-                </ListItemAvatar>
+            {notifications.length === 0 ? (
+              <ListItem sx={{ py: 3, justifyContent: 'center' }}>
                 <ListItemText
                   primary={
-                    <Typography variant="body2" fontWeight="bold" color="text.primary">
-                      {noti.title}
+                    <Typography variant="body2" color="text.secondary" align="center">
+                      No new notifications
                     </Typography>
-                  }
-                  secondary={
-                    <>
-                      <Typography variant="caption" color="text.secondary" display="block" sx={{ mt: 0.5, lineHeight: 1.35 }}>
-                        {noti.desc}
-                      </Typography>
-                      <Typography variant="caption" color="text.disabled" display="block" sx={{ mt: 0.5, fontWeight: 500 }}>
-                        {noti.time}
-                      </Typography>
-                    </>
                   }
                 />
               </ListItem>
-            ))}
+            ) : (
+              notifications.map((noti) => (
+                <ListItem key={noti.id} alignItems="flex-start" sx={{ '&:hover': { backgroundColor: 'action.hover' }, p: 1.8, opacity: noti.isRead ? 0.6 : 1 }}>
+                  <ListItemAvatar sx={{ minWidth: 40 }}>
+                    <Avatar sx={{ bgcolor: noti.type === 'success' ? 'success.dark' : noti.type === 'warning' ? 'warning.dark' : 'primary.dark', width: 30, height: 30 }}>
+                      <NotificationsActiveIcon sx={{ fontSize: 16 }} />
+                    </Avatar>
+                  </ListItemAvatar>
+                  <ListItemText
+                    primary={
+                      <Typography variant="body2" fontWeight="bold" color="text.primary">
+                        {noti.title}
+                      </Typography>
+                    }
+                    secondary={
+                      <>
+                        <Typography variant="caption" color="text.secondary" display="block" sx={{ mt: 0.5, lineHeight: 1.35 }}>
+                          {noti.desc}
+                        </Typography>
+                        <Typography variant="caption" color="text.disabled" display="block" sx={{ mt: 0.5, fontWeight: 500 }}>
+                          {noti.time}
+                        </Typography>
+                      </>
+                    }
+                  />
+                </ListItem>
+              ))
+            )}
           </List>
         </Menu>
 

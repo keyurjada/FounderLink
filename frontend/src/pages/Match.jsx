@@ -1,54 +1,69 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { Box, Typography, Grid, Card, CardContent, Avatar, Chip, Button, TextField, InputAdornment } from '@mui/material';
 import { Search as SearchIcon, FilterList as FilterIcon, Chat as ChatIcon } from '@mui/icons-material';
-
-const mockCandidates = [
-  {
-    id: 1,
-    name: "Harsh Shah",
-    title: "AI Researcher & Data Engineer",
-    avatar: "https://media.licdn.com/dms/image/v2/D4D03AQFkhRKa6nIWaA/profile-displayphoto-crop_800_800/B4DZfKFIwMGkAI-/0/1751442034266?e=1785369600&v=beta&t=sqgpjCQFJeAnABF_Jc7p41z7zDbme8qgQP2Az1Un9CI",
-    skills: ["Python", "PyTorch", "TensorFlow", "Scikit-Learn"],
-    bio: "Ex-Google researcher specializing in NLP and LLM finetuning. Looking for a product-focused co-founder to build AI carbon accounting workflows.",
-    matchScore: 94
-  },
-  {
-    id: 2,
-    name: "Kaushal Dudakiya",
-    title: "Chief Product Officer / UI Architect",
-    avatar: "https://media.licdn.com/dms/image/v2/D4D03AQFaRAg9Q_l7Hg/profile-displayphoto-shrink_800_800/profile-displayphoto-shrink_800_800/0/1689217191833?e=1785369600&v=beta&t=tX_Klj3e_NkUuBJPseUDFZj4j2KaIIFjOWKeW7vvY5s",
-    skills: ["Figma", "React.js", "TailwindCSS", "Product Strategy"],
-    bio: "Designed products with 10M+ active users. Passionate about sustainability. Seeking a technical backend co-founder for a micro-mobility platform.",
-    matchScore: 89
-  },
-  {
-    id: 3,
-    name: "Prof. Jevin Parmar",
-    title: "Senior Backend Developer",
-    avatar: "https://media.licdn.com/dms/image/v2/D5603AQHo23MM6D0Uew/profile-displayphoto-crop_800_800/B56Z3fgY.aKkAI-/0/1777571310804?e=1785369600&v=beta&t=yaiO_D6qNOacghu2DvpvgdPDTdJFo7FY3AaTLl3AG00",
-    skills: ["Golang", "PostgreSQL", "Docker", "Kubernetes", "gRPC"],
-    bio: "Infrastructure engineer with startup experience. Built high-scale financial ledgers. Looking to join an early-stage fintech team.",
-    matchScore: 85
-  }
-];
+import { SessionContext } from '../context/SessionProvider.jsx';
+import RecentStartups from '../components/RecentStartups.jsx';
 
 export default function Match() {
+  const { currentUser, fetchApi } = useContext(SessionContext);
   const [searchTerm, setSearchTerm] = useState('');
+  const [candidates, setCandidates] = useState([]);
 
-  const filtered = mockCandidates.filter(c => 
+  useEffect(() => {
+    if (currentUser?.role === 'Founder') {
+      const loadTalents = async () => {
+        try {
+          const data = await fetchApi('/auth/talents');
+          if (data && data.length > 0) {
+            const mapped = data.map(item => ({
+              id: item._id,
+              name: item.name,
+              title: item.title || "Technical Coder",
+              skills: item.skills || ["React", "Node.js", "MongoDB"],
+              bio: item.bio || "Experienced technical co-founder interested in partnering with early-stage startups.",
+              avatar: item.avatarUrl || "https://img.icons8.com/color/96/user-male-circle--v1.png",
+              matchScore: 92
+            }));
+            setCandidates(mapped);
+          }
+        } catch (e) {
+          console.error(e);
+        }
+      };
+      loadTalents();
+    }
+  }, [currentUser, fetchApi]);
+
+  const filtered = candidates.filter(c => 
     c.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     c.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
     c.skills.some(s => s.toLowerCase().includes(searchTerm.toLowerCase()))
   );
 
+  if (currentUser?.role === 'Talent') {
+    return (
+      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+        <Box>
+          <Typography variant="h4" fontWeight="bold" sx={{ color: 'text.primary', letterSpacing: '-0.5px' }}>
+            Explore Startups
+          </Typography>
+          <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
+            Browse and filter early-stage startup projects looking for a technical co-founder.
+          </Typography>
+        </Box>
+        <RecentStartups />
+      </Box>
+    );
+  }
+
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
       <Box>
         <Typography variant="h4" fontWeight="bold" sx={{ color: 'text.primary', letterSpacing: '-0.5px' }}>
-          Co-Founder Matcher
+          My Project Listings
         </Typography>
         <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
-          Connect with vetted developers, designers, and visionaries aligned with your startup requirements.
+          Search and connect with technical co-founders matching your project requirements.
         </Typography>
       </Box>
 

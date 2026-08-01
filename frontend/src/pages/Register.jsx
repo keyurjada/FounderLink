@@ -1,4 +1,4 @@
-import React, { useState, useContext } from 'react';
+import React, { useState, useContext, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { SessionContext } from '../context/SessionProvider.jsx';
 import registerimg from "../assets/registerimg.png";
@@ -14,8 +14,14 @@ const Register = () => {
   });
 
   const [errMessage, setErrMessage] = useState('');
-  const { registerUser } = useContext(SessionContext);
+  const { registerUser, currentUser } = useContext(SessionContext);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    if (currentUser) {
+      navigate('/dashboard', { replace: true });
+    }
+  }, [currentUser, navigate]);
 
   const handleInputChange = (e) => {
     setVals({ ...vals, [e.target.name]: e.target.value });

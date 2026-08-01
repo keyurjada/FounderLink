@@ -1,50 +1,56 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { Box, Typography, Card, CardContent, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Chip, Button, IconButton, Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions } from '@mui/material';
 import { Delete as DeleteIcon, OpenInNew as ViewIcon } from '@mui/icons-material';
+import { SessionContext } from '../context/SessionProvider.jsx';
 
 export default function Applications() {
+  const { currentUser, fetchApi } = useContext(SessionContext);
   const [pitches, setPitches] = useState([]);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [pitchToDelete, setPitchToDelete] = useState(null);
 
   useEffect(() => {
-    const raw = localStorage.getItem('active_pitches');
-    if (raw) {
-      setPitches(JSON.parse(raw));
-    } else {
-      // Seed default applications
-      const defaults = [
-        {
-          id: 101,
-          startupName: "EcoSphere AI",
-          founder: "Sarah Jenkins",
-          pitchText: "Hi Sarah! I am a full stack developer with experience in React and Python. I'd love to join you and build out the carbon offset verification engine.",
-          status: "Under Review",
-          time: "2 hours ago",
-          color: "warning"
-        },
-        {
-          id: 102,
-          startupName: "FinFlow Solutions",
-          founder: "David Miller",
-          pitchText: "Hey David, your stablecoin automated invoicing flows sound amazing. I have extensive experience building React + TypeScript dashboards.",
-          status: "Accepted",
-          time: "1 day ago",
-          color: "success"
+    const loadPitches = async () => {
+      try {
+        const endpoint = currentUser?.role === 'Founder' ? '/applications/received' : '/applications';
+        const data = await fetchApi(endpoint);
+        if (data && data.length > 0) {
+          const mapped = data.map(p => ({
+            id: p._id,
+            startupName: p.startupId?.startuptitle || "Startup",
+            founder: p.applicantId?.name || "Candidate",
+            pitchText: p.pitchText,
+            status: p.status,
+            time: new Date(p.createdAt).toLocaleDateString(),
+            color: p.status === 'Accepted' ? 'success' : p.status === 'Rejected' ? 'error' : 'warning'
+          }));
+          setPitches(mapped);
+        } else {
+          setPitches([]);
         }
-      ];
-      localStorage.setItem('active_pitches', JSON.stringify(defaults));
-      setPitches(defaults);
-    }
-  }, []);
+      } catch (e) {
+        setPitches([]);
+      }
+    };
+
+    loadPitches();
+  }, [currentUser, fetchApi]);
 
   const handleOpenDeleteDialog = (id) => {
     setPitchToDelete(id);
     setDeleteDialogOpen(true);
   };
 
-  const handleConfirmDelete = () => {
+  const handleConfirmDelete = async () => {
     if (pitchToDelete) {
+      try {
+        await fetchApi(`/applications/${pitchToDelete}`, {
+          method: 'DELETE'
+        });
+      } catch (e) {
+        console.warn("Backend delete failed, fallback to local:", e);
+      }
+
       const updated = pitches.filter(p => p.id !== pitchToDelete);
       localStorage.setItem('active_pitches', JSON.stringify(updated));
       setPitches(updated);
@@ -59,14 +65,40 @@ export default function Applications() {
     setPitchToDelete(null);
   };
 
+  const handleUpdateStatus = async (id, newStatus) => {
+    try {
+      await fetchApi(`/applications/${id}`, {
+        method: 'PUT',
+        body: JSON.stringify({ status: newStatus })
+      });
+      
+      setPitches(pitches.map(p => {
+        if (p.id === id) {
+          return {
+            ...p,
+            status: newStatus,
+            color: newStatus === 'Accepted' ? 'success' : newStatus === 'Rejected' ? 'error' : 'warning'
+          };
+        }
+        return p;
+      }));
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  const isFounder = currentUser?.role === 'Founder';
+
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
       <Box>
         <Typography variant="h4" fontWeight="bold" sx={{ color: 'text.primary', letterSpacing: '-0.5px' }}>
-          My Applications
+          {isFounder ? "Received Applications & Requests" : "Sent Applications"}
         </Typography>
         <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
-          Track and manage your submitted pitches, partnership applications, and co-founder match status.
+          {isFounder 
+            ? "Review and approve/reject co-founder applications submitted by developers to join your startup projects." 
+            : "Track and manage your submitted pitches, partnership applications, and co-founder match status."}
         </Typography>
       </Box>
 
@@ -86,8 +118,8 @@ export default function Applications() {
           <TableHead>
             <TableRow sx={{ borderBottom: '1px solid', borderColor: 'divider' }}>
               <TableCell sx={{ fontWeight: 'bold', color: 'text.secondary' }}>Startup</TableCell>
-              <TableCell sx={{ fontWeight: 'bold', color: 'text.secondary' }}>Founder</TableCell>
-              <TableCell sx={{ fontWeight: 'bold', color: 'text.secondary' }}>Cover Letter / Pitch</TableCell>
+              <TableCell sx={{ fontWeight: 'bold', color: 'text.secondary' }}>{isFounder ? "Applicant" : "Founder"}</TableCell>
+              <TableCell sx={{ fontWeight: 'bold', color: 'text.secondary' }}>Cover Letter</TableCell>
               <TableCell sx={{ fontWeight: 'bold', color: 'text.secondary' }}>Status</TableCell>
               <TableCell align="right" sx={{ fontWeight: 'bold', color: 'text.secondary' }}>Actions</TableCell>
             </TableRow>
@@ -96,7 +128,7 @@ export default function Applications() {
             {pitches.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={5} align="center" sx={{ py: 6, color: 'text.secondary' }}>
-                  No active pitches found. Go to Dashboard or Co-Founder Matcher to apply.
+                  {isFounder ? "No applications or requests received yet." : "No active applications or requests found. Go to Explore Startups to apply."}
                 </TableCell>
               </TableRow>
             ) : (
@@ -128,14 +160,39 @@ export default function Applications() {
                     />
                   </TableCell>
                   <TableCell align="right">
-                    <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 1 }}>
-                      <IconButton size="small" sx={{ color: 'text.secondary' }}>
-                        <ViewIcon fontSize="small" />
-                      </IconButton>
-                      <IconButton size="small" color="error" onClick={() => handleOpenDeleteDialog(pitch.id)}>
-                        <DeleteIcon fontSize="small" />
-                      </IconButton>
-                    </Box>
+                    {isFounder ? (
+                      <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 1 }}>
+                        <Button 
+                          variant="contained" 
+                          color="success" 
+                          size="small" 
+                          onClick={() => handleUpdateStatus(pitch.id, 'Accepted')}
+                          disabled={pitch.status === 'Accepted'}
+                          sx={{ textTransform: 'none', borderRadius: 2 }}
+                        >
+                          Accept
+                        </Button>
+                        <Button 
+                          variant="outlined" 
+                          color="error" 
+                          size="small" 
+                          onClick={() => handleUpdateStatus(pitch.id, 'Rejected')}
+                          disabled={pitch.status === 'Rejected'}
+                          sx={{ textTransform: 'none', borderRadius: 2 }}
+                        >
+                          Reject
+                        </Button>
+                      </Box>
+                    ) : (
+                      <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 1 }}>
+                        <IconButton size="small" sx={{ color: 'text.secondary' }}>
+                          <ViewIcon fontSize="small" />
+                        </IconButton>
+                        <IconButton size="small" color="error" onClick={() => handleOpenDeleteDialog(pitch.id)}>
+                          <DeleteIcon fontSize="small" />
+                        </IconButton>
+                      </Box>
+                    )}
                   </TableCell>
                 </TableRow>
               ))
@@ -159,7 +216,7 @@ export default function Applications() {
           }
         }}
       >
-        <DialogTitle sx={{ fontWeight: 'bold' }}>Delete Application Pitch</DialogTitle>
+        <DialogTitle sx={{ fontWeight: 'bold' }}>Delete Application Request</DialogTitle>
         <DialogContent>
           <DialogContentText sx={{ color: 'text.secondary', fontSize: '14px' }}>
             Are you sure you want to withdraw and delete this co-founder application? This action cannot be undone.

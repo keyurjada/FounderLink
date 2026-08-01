@@ -80,4 +80,13 @@ const getUserProfile = async (req, res) => {
   }
 };
 
-export { registerUser, authUser, getUserProfile };
+const getTalents = async (req, res) => {
+  try {
+    const talents = await User.find({ role: 'Talent' }).select('-password');
+    res.json(talents);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+export { registerUser, authUser, getUserProfile, getTalents };

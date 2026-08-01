@@ -1,4 +1,4 @@
-import React, { useState, useContext } from 'react';
+import React, { useState, useContext, useEffect } from 'react';
 import { 
   Box, 
   Card, 
@@ -26,10 +26,39 @@ import { startupList } from '../data/localFeed';
 import { SessionContext } from '../context/SessionProvider.jsx';
 
 const RecentStartups = () => {
-  const { currentUser } = useContext(SessionContext);
+  const { currentUser, fetchApi } = useContext(SessionContext);
+  const [startups, setStartups] = useState([]);
   const [selectedStartup, setSelectedStartup] = useState(null);
   const [pitchText, setPitchText] = useState('');
   const [snackbarOpen, setSnackbarOpen] = useState(false);
+
+  useEffect(() => {
+    const loadStartups = async () => {
+      try {
+        const data = await fetchApi('/idea');
+        if (data && data.length > 0) {
+          const mapped = data.map(item => ({
+            id: item._id,
+            name: item.startuptitle,
+            tagline: item.category,
+            equity: `${item.equity}%`,
+            description: item.description,
+            location: "Remote",
+            stage: "Seed",
+            skillsRequired: ["React", "Node.js"],
+            avatarColor: "#4f46e5",
+            founder: "Founder"
+          }));
+          setStartups(mapped);
+        } else {
+          setStartups([]);
+        }
+      } catch (e) {
+        setStartups([]);
+      }
+    };
+    loadStartups();
+  }, [fetchApi]);
 
   const handleOpenApply = (startup) => {
     setSelectedStartup(startup);
@@ -40,7 +69,19 @@ const RecentStartups = () => {
     setPitchText('');
   };
 
-  const handleSubmitApplication = () => {
+  const handleSubmitApplication = async () => {
+    try {
+      await fetchApi('/applications', {
+        method: 'POST',
+        body: JSON.stringify({
+          startupId: selectedStartup.id,
+          pitchText: pitchText
+        })
+      });
+    } catch (e) {
+      console.warn("Backend submit failed, using localStorage fallback:", e);
+    }
+
     const activePitches = JSON.parse(localStorage.getItem('active_pitches') || '[]');
     const newPitch = {
       id: Date.now(),
@@ -64,7 +105,7 @@ const RecentStartups = () => {
   return (
     <Box>
       <Grid container spacing={3}>
-        {startupList.map((startup) => (
+        {startups.map((startup) => (
           <Grid item xs={12} key={startup.id}>
             <Card 
               sx={{ 

@@ -6,6 +6,10 @@ import { Server } from 'socket.io';
 import connectDB from './src/config/db.js';
 import authRoutes from './src/routes/authRoutes.js';
 import ideaRoutes from './src/routes/ideaRoutes.js';
+import applicationRoutes from './src/routes/applicationRoutes.js';
+import workspaceRoutes from './src/routes/workspaceRoutes.js';
+import messageRoutes from './src/routes/messageRoutes.js';
+import notificationRoutes from './src/routes/notificationRoutes.js';
 dotenv.config();
 
 // Connect to Database
@@ -25,7 +29,11 @@ app.use(express.json());
 
 // Routes
 app.use('/api/auth', authRoutes);
-app.use("/api/idea",ideaRoutes);
+app.use('/api/idea', ideaRoutes);
+app.use('/api/applications', applicationRoutes);
+app.use('/api/workspaces', workspaceRoutes);
+app.use('/api/messages', messageRoutes);
+app.use('/api/notifications', notificationRoutes);
 
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', message: 'FounderLink API is healthy' });
@@ -38,6 +46,14 @@ io.on('connection', (socket) => {
   socket.on('joinWorkspace', (workspaceId) => {
     socket.join(workspaceId);
     console.log(`Socket ${socket.id} joined workspace ${workspaceId}`);
+  });
+
+  socket.on('taskUpdated', ({ workspaceId, task }) => {
+    socket.to(workspaceId).emit('taskUpdatedFromServer', task);
+  });
+
+  socket.on('sendMessage', (message) => {
+    socket.broadcast.emit('messageReceived', message);
   });
 
   socket.on('disconnect', () => {

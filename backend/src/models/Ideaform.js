@@ -3,6 +3,11 @@ import mongoose from "mongoose";
 const IdeaformSchema = new mongoose.Schema(
 
     {
+        userId: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'User',
+            required: true
+        },
         startuptitle:{
             type:String,
             required:true
@@ -22,6 +27,10 @@ const IdeaformSchema = new mongoose.Schema(
         teamsize:{
             type:Number,
             required:true
+        },
+        skillsRequired: {
+            type: [String],
+            default: []
         }
 
     },
