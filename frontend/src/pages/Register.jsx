@@ -14,7 +14,7 @@ const Register = () => {
   });
 
   const [errMessage, setErrMessage] = useState('');
-  const { registerUser, currentUser } = useContext(SessionContext);
+  const { registerUser, currentUser, setGlobalLoading } = useContext(SessionContext);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -30,14 +30,20 @@ const Register = () => {
   const handleFormSubmit = async (e) => {
     e.preventDefault();
     setErrMessage('');
+    setGlobalLoading(true);
 
     const nameVal = `${vals.firstName} ${vals.lastName}`.trim();
     
+    // Intentional delay for aesthetic loader
+    await new Promise(resolve => setTimeout(resolve, 800));
+
     try {
-      await registerUser(nameVal, vals.email, vals.password, vals.role);
+      await registerUser(nameVal, vals.email, vals.password, vals.role, vals.phone);
+      setGlobalLoading(false);
       alert('Registration Successful!');
       navigate('/dashboard');
     } catch (err) {
+      setGlobalLoading(false);
       setErrMessage(err.message || 'Error occurred during registration');
     }
   };

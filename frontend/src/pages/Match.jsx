@@ -21,7 +21,7 @@ export default function Match() {
               title: item.title || "Technical Coder",
               skills: item.skills || ["React", "Node.js", "MongoDB"],
               bio: item.bio || "Experienced technical co-founder interested in partnering with early-stage startups.",
-              avatar: item.avatarUrl || "https://img.icons8.com/color/96/user-male-circle--v1.png",
+              avatar: item.profilePicture || "https://img.icons8.com/color/96/user-male-circle--v1.png",
               matchScore: 92
             }));
             setCandidates(mapped);

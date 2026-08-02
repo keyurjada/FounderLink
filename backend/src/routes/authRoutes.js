@@ -3,6 +3,7 @@ import {
   registerUser,
   authUser,
   getUserProfile,
+  updateUserProfile,
   getTalents
 } from '../controllers/authController.js';
 import { protect } from '../middleware/authMiddleware.js';
@@ -11,7 +12,10 @@ const router = express.Router();
 
 router.post('/register', registerUser);
 router.post('/login', authUser);
-router.get('/me', protect, getUserProfile);
+router.route('/me')
+  .get(protect, getUserProfile)
+  .put(protect, updateUserProfile);
+  
 router.get('/talents', protect, getTalents);
 
 export default router;

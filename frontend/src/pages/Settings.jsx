@@ -1,34 +1,65 @@
-import React, { useState, useContext } from 'react';
-import { Box, Typography, Card, CardContent, Grid, TextField, Button, Alert } from '@mui/material';
+import React, { useState, useContext, useRef } from 'react';
+import { Box, Typography, Card, CardContent, Grid, TextField, Button, Alert, Avatar, IconButton } from '@mui/material';
+import { PhotoCamera } from '@mui/icons-material';
 import { SessionContext } from '../context/SessionProvider.jsx';
 
 export default function Settings() {
-  const { currentUser } = useContext(SessionContext);
+  const { currentUser, setCurrentUser, fetchApi, setGlobalLoading } = useContext(SessionContext);
   const [name, setName] = useState(currentUser?.name || '');
   const [email, setEmail] = useState(currentUser?.email || '');
+  const [phone, setPhone] = useState(currentUser?.phone || '');
   const [title, setTitle] = useState(currentUser?.title || '');
+  const [profilePic, setProfilePic] = useState(currentUser?.profilePicture || '');
+  
+  const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
+  const [error, setError] = useState('');
+  const fileInputRef = useRef(null);
 
-  const handleSave = (e) => {
-    e.preventDefault();
-    setSuccess(false);
-    
-    // Update both active session and profile database
-    const active = JSON.parse(localStorage.getItem('active_session') || '{}');
-    const updatedUser = { ...active, name, email, title };
-    localStorage.setItem('active_session', JSON.stringify(updatedUser));
-
-    // Update global list of saved profiles
-    const saved = JSON.parse(localStorage.getItem('saved_profiles') || '[]');
-    const idx = saved.findIndex(u => u.email.toLowerCase() === email.toLowerCase());
-    if (idx !== -1) {
-      saved[idx] = { ...saved[idx], name, title };
-      localStorage.setItem('saved_profiles', JSON.stringify(saved));
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      if (file.size > 2 * 1024 * 1024) { // 2MB limit for base64 simplicity
+        setError('Image size should be less than 2MB');
+        return;
+      }
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setProfilePic(reader.result);
+        setError('');
+      };
+      reader.readAsDataURL(file);
     }
+  };
 
-    setSuccess(true);
-    // Dispatch storage event to alert components
-    window.dispatchEvent(new Event('storage'));
+  const handleSave = async (e) => {
+    e.preventDefault();
+    setGlobalLoading(true);
+    setSuccess(false);
+    setError('');
+
+    try {
+      const updatedUser = await fetchApi('/auth/me', {
+        method: 'PUT',
+        body: JSON.stringify({
+          name,
+          phone,
+          title,
+          profilePicture: profilePic
+        })
+      });
+
+      if (updatedUser) {
+        // Also update context so Navbar picks it up
+        setCurrentUser(updatedUser);
+        setSuccess(true);
+        setTimeout(() => setSuccess(false), 3000);
+      }
+    } catch (err) {
+      setError('Failed to update profile. Please try again.');
+    } finally {
+      setGlobalLoading(false);
+    }
   };
 
   return (
@@ -54,56 +85,124 @@ export default function Settings() {
         }}
       >
         <CardContent sx={{ p: 4 }}>
-          {success && (
-            <Alert severity="success" sx={{ mb: 3, borderRadius: 2 }}>
-              Settings updated successfully! Changes reflect instantly.
-            </Alert>
-          )}
-
+          <Box sx={{ mb: 4, display: 'flex', alignItems: 'center', gap: 3 }}>
+            <Box sx={{ position: 'relative' }}>
+              <Avatar
+                src={profilePic}
+                sx={{
+                  width: 80,
+                  height: 80,
+                  border: '2px solid',
+                  borderColor: 'primary.main',
+                  fontSize: '32px',
+                  bgcolor: 'primary.main',
+                  fontWeight: 'bold'
+                }}
+              >
+                {!profilePic && name.charAt(0).toUpperCase()}
+              </Avatar>
+              <IconButton
+                color="primary"
+                aria-label="upload picture"
+                component="span"
+                onClick={() => fileInputRef.current.click()}
+                sx={{
+                  position: 'absolute',
+                  bottom: -8,
+                  right: -8,
+                  backgroundColor: 'background.paper',
+                  boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+                  '&:hover': { backgroundColor: 'background.default' }
+                }}
+              >
+                <PhotoCamera fontSize="small" />
+              </IconButton>
+              <input
+                type="file"
+                hidden
+                ref={fileInputRef}
+                accept="image/*"
+                onChange={handleImageChange}
+              />
+            </Box>
+            <Box>
+              <Typography variant="h6" fontWeight="bold">{name || 'Your Name'}</Typography>
+              <Typography variant="body2" color="text.secondary">{title} • {currentUser?.role}</Typography>
+            </Box>
+          </Box>
+          
           <form onSubmit={handleSave}>
             <Grid container spacing={3}>
-              <Grid item xs={12}>
+              {error && (
+                <Grid item xs={12}>
+                  <Alert severity="error">{error}</Alert>
+                </Grid>
+              )}
+              {success && (
+                <Grid item xs={12}>
+                  <Alert severity="success">Profile updated successfully!</Alert>
+                </Grid>
+              )}
+              
+              <Grid item xs={12} sm={6}>
                 <TextField
                   fullWidth
-                  label="Full Name"
-                  variant="outlined"
+                  label="Full Name (Uneditable)"
+                  variant="filled"
                   value={name}
-                  onChange={e => setName(e.target.value)}
-                  sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2 } }}
+                  InputProps={{ readOnly: true }}
+                  sx={{ '& .MuiFilledInput-root': { borderRadius: 2, backgroundColor: 'action.hover' } }}
+                />
+              </Grid>
+
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  fullWidth
+                  label="Phone Number"
+                  variant="filled"
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                  placeholder="e.g. +1 234 567 8900"
+                  sx={{ '& .MuiFilledInput-root': { borderRadius: 2 } }}
                 />
               </Grid>
 
               <Grid item xs={12}>
                 <TextField
                   fullWidth
-                  label="Email Address"
-                  variant="outlined"
-                  disabled
+                  label="Email Address (Uneditable)"
+                  variant="filled"
                   value={email}
-                  onChange={e => setEmail(e.target.value)}
-                  helperText="Primary email cannot be changed."
-                  sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2 } }}
+                  InputProps={{ readOnly: true }}
+                  sx={{ '& .MuiFilledInput-root': { borderRadius: 2, backgroundColor: 'action.hover' } }}
                 />
               </Grid>
 
               <Grid item xs={12}>
                 <TextField
                   fullWidth
-                  label="Professional Title"
-                  variant="outlined"
+                  label="Professional Title (Uneditable)"
+                  variant="filled"
                   value={title}
-                  onChange={e => setTitle(e.target.value)}
-                  sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2 } }}
+                  InputProps={{ readOnly: true }}
+                  sx={{ '& .MuiFilledInput-root': { borderRadius: 2, backgroundColor: 'action.hover' } }}
                 />
               </Grid>
 
-              <Grid item xs={12} sx={{ mt: 1 }}>
-                <Button
-                  type="submit"
-                  variant="contained"
-                  sx={{ borderRadius: 2, px: 4, py: 1.2, textTransform: 'none', fontWeight: 'bold' }}
+              <Grid item xs={12} sx={{ mt: 2, display: 'flex', justifyContent: 'flex-end' }}>
+                <Button 
+                  type="submit" 
+                  variant="contained" 
+                  color="primary" 
+                  sx={{ 
+                    borderRadius: 2, 
+                    px: 4, 
+                    py: 1.2, 
+                    fontWeight: 'bold',
+                    textTransform: 'none'
+                  }}
                 >
-                  Save Settings
+                  Save Changes
                 </Button>
               </Grid>
             </Grid>

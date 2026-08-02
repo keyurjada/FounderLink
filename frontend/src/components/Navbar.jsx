@@ -318,6 +318,7 @@ const Navbar = ({ onDrawerToggle }) => {
               variant="dot"
             >
               <Avatar 
+                src={currentUser?.profilePicture || ''}
                 alt={currentUser?.name || 'User'} 
                 sx={{ 
                   width: 36, 
@@ -328,7 +329,7 @@ const Navbar = ({ onDrawerToggle }) => {
                   color: 'text.secondary'
                 }}
               >
-                <PersonIcon fontSize="small" />
+                {!currentUser?.profilePicture && <PersonIcon fontSize="small" />}
               </Avatar>
             </StyledBadge>
           </IconButton>

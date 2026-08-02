@@ -20,6 +20,14 @@ const userSchema = new mongoose.Schema(
       type: String,
       enum: ['Founder', 'Talent'],
       required: true
+    },
+    phone: {
+      type: String,
+      default: ''
+    },
+    profilePicture: {
+      type: String,
+      default: ''
     }
   },
   {

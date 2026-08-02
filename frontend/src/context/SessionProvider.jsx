@@ -1,4 +1,5 @@
 import React, { createContext, useState, useEffect } from 'react';
+import { Backdrop, CircularProgress, Box, Typography } from '@mui/material';
 
 export const SessionContext = createContext();
 
@@ -105,8 +106,37 @@ export const fetchApi = async (endpoint, options = {}) => {
         role: t.role,
         title: t.title || 'Technical Coder',
         skills: t.skills || ['React', 'Node.js', 'MongoDB'],
-        bio: t.bio || 'Experienced coder looking for a matching co-founder.'
+        bio: t.bio || 'Experienced coder looking for a matching co-founder.',
+        profilePicture: t.profilePicture || ''
       }));
+    }
+
+    if (endpoint === '/auth/me' && method === 'PUT') {
+      const active = getLocal('active_session', {});
+      const updated = { ...active, ...body };
+      
+      const stored = getLocal('saved_profiles');
+      const idx = stored.findIndex(u => u.email.toLowerCase() === active.email?.toLowerCase());
+      if (idx !== -1) {
+        stored[idx] = { ...stored[idx], ...body };
+        setLocal('saved_profiles', stored);
+      }
+      setLocal('active_session', updated);
+      return updated;
+    }
+
+    if (endpoint === '/auth/me' && method === 'PUT') {
+      const active = getLocal('active_session', {});
+      const updated = { ...active, ...body };
+      
+      const stored = getLocal('saved_profiles');
+      const idx = stored.findIndex(u => u.email.toLowerCase() === active.email?.toLowerCase());
+      if (idx !== -1) {
+        stored[idx] = { ...stored[idx], ...body };
+        setLocal('saved_profiles', stored);
+      }
+      setLocal('active_session', updated);
+      return updated;
     }
 
     if (endpoint === '/applications' || endpoint === '/applications/received') {
@@ -215,6 +245,7 @@ export const fetchApi = async (endpoint, options = {}) => {
 export const SessionProvider = ({ children }) => {
   const [currentUser, setCurrentUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [globalLoading, setGlobalLoading] = useState(false);
 
   useEffect(() => {
     const restoreSession = async () => {
@@ -281,6 +312,8 @@ export const SessionProvider = ({ children }) => {
           name: matched.name,
           email: matched.email,
           role: matched.role,
+          phone: matched.phone || '',
+          profilePicture: matched.profilePicture || '',
           title: matched.title || (matched.role === 'Founder' ? 'Founder' : 'Software Engineer')
         };
         localStorage.setItem('active_session', JSON.stringify(data));
@@ -292,11 +325,11 @@ export const SessionProvider = ({ children }) => {
     }
   };
 
-  const registerUser = async (name, email, password, role) => {
+  const registerUser = async (name, email, password, role, phone = '') => {
     try {
       const data = await requestJson('/register', {
         method: 'POST',
-        body: JSON.stringify({ name, email, password, role })
+        body: JSON.stringify({ name, email, password, role, phone })
       });
 
       localStorage.setItem('auth_token', data.token);
@@ -305,6 +338,8 @@ export const SessionProvider = ({ children }) => {
         name: data.name,
         email: data.email,
         role: data.role,
+        phone: data.phone || phone,
+        profilePicture: data.profilePicture || '',
         title: data.title || (data.role === 'Founder' ? 'Founder' : 'Software Engineer')
       }));
       setCurrentUser({
@@ -312,6 +347,8 @@ export const SessionProvider = ({ children }) => {
         name: data.name,
         email: data.email,
         role: data.role,
+        phone: data.phone || phone,
+        profilePicture: data.profilePicture || '',
         title: data.title || (data.role === 'Founder' ? 'Founder' : 'Software Engineer')
       });
       return data;
@@ -335,6 +372,8 @@ export const SessionProvider = ({ children }) => {
         email,
         password,
         role,
+        phone,
+        profilePicture: '',
         title: role === 'Founder' ? 'Startup Founder' : 'Developer / Designer'
       };
 
@@ -346,6 +385,8 @@ export const SessionProvider = ({ children }) => {
         name: payload.name,
         email: payload.email,
         role: payload.role,
+        phone: payload.phone,
+        profilePicture: payload.profilePicture,
         title: payload.title
       };
       localStorage.setItem('active_session', JSON.stringify(data));
@@ -360,9 +401,53 @@ export const SessionProvider = ({ children }) => {
     setCurrentUser(null);
   };
 
+  // We expose setCurrentUser and setGlobalLoading so components can use them
   return (
-    <SessionContext.Provider value={{ currentUser, loading, loginUser, registerUser, logoutUser, fetchApi }}>
+    <SessionContext.Provider value={{ currentUser, setCurrentUser, loading, loginUser, registerUser, logoutUser, fetchApi, setGlobalLoading }}>
       {children}
+      <Backdrop
+        sx={{
+          color: '#fff',
+          zIndex: (theme) => theme.zIndex.drawer + 9999,
+          backdropFilter: 'blur(8px)',
+          backgroundColor: 'rgba(3, 7, 6, 0.7)',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 2
+        }}
+        open={globalLoading}
+      >
+        <Box sx={{ position: 'relative', display: 'inline-flex' }}>
+          <CircularProgress 
+            size={60} 
+            thickness={4} 
+            sx={{ 
+              color: 'primary.main',
+              animationDuration: '1.5s',
+              '& .MuiCircularProgress-circle': {
+                strokeLinecap: 'round',
+              }
+            }} 
+          />
+          <CircularProgress 
+            size={60} 
+            thickness={4} 
+            sx={{ 
+              color: 'secondary.main',
+              position: 'absolute',
+              left: 0,
+              opacity: 0.5,
+              animationDuration: '2s',
+              '& .MuiCircularProgress-circle': {
+                strokeLinecap: 'round',
+              }
+            }} 
+          />
+        </Box>
+        <Typography variant="body2" sx={{ fontWeight: 600, color: 'text.primary', letterSpacing: 1 }}>
+          PROCESSING...
+        </Typography>
+      </Backdrop>
     </SessionContext.Provider>
   );
 };

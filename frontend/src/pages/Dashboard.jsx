@@ -172,7 +172,7 @@ export default function Dashboard() {
                     >
                       <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
                         <Avatar 
-                          src={candidate.avatarUrl || "https://img.icons8.com/color/96/user-male-circle--v1.png"} 
+                          src={candidate.profilePicture || "https://img.icons8.com/color/96/user-male-circle--v1.png"} 
                           sx={{ width: 52, height: 52 }} 
                         />
                         <Box>

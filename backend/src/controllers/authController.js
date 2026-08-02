@@ -11,7 +11,7 @@ const generateToken = (id) => {
 
 // Register a new user account
 const registerUser = async (req, res) => {
-  const { name, email, password, role } = req.body;
+  const { name, email, password, role, phone } = req.body;
 
   try {
     const userExists = await User.findOne({ email });
@@ -24,7 +24,8 @@ const registerUser = async (req, res) => {
       name,
       email,
       password,
-      role
+      role,
+      phone: phone || ''
     });
 
     if (user) {
@@ -33,6 +34,8 @@ const registerUser = async (req, res) => {
         name: user.name,
         email: user.email,
         role: user.role,
+        phone: user.phone,
+        profilePicture: user.profilePicture,
         token: generateToken(user._id)
       });
     } else {
@@ -56,6 +59,8 @@ const authUser = async (req, res) => {
         name: user.name,
         email: user.email,
         role: user.role,
+        phone: user.phone,
+        profilePicture: user.profilePicture,
         token: generateToken(user._id)
       });
     } else {
@@ -73,7 +78,45 @@ const getUserProfile = async (req, res) => {
       _id: req.user._id,
       name: req.user.name,
       email: req.user.email,
-      role: req.user.role
+      role: req.user.role,
+      phone: req.user.phone,
+      profilePicture: req.user.profilePicture
+    });
+  } else {
+    res.status(404).json({ message: 'User not found' });
+  }
+};
+
+// Update user profile
+const updateUserProfile = async (req, res) => {
+  const user = await User.findById(req.user._id);
+
+  if (user) {
+    user.name = req.body.name || user.name;
+    user.phone = req.body.phone !== undefined ? req.body.phone : user.phone;
+    
+    // We do not allow changing role or email for simplicity and security 
+    // unless extra validation is provided, but user can change phone and name.
+    
+    // If a profilePicture (base64) string is passed, update it
+    if (req.body.profilePicture !== undefined) {
+      user.profilePicture = req.body.profilePicture;
+    }
+
+    if (req.body.password) {
+      user.password = req.body.password;
+    }
+
+    const updatedUser = await user.save();
+
+    res.json({
+      _id: updatedUser._id,
+      name: updatedUser.name,
+      email: updatedUser.email,
+      role: updatedUser.role,
+      phone: updatedUser.phone,
+      profilePicture: updatedUser.profilePicture,
+      token: generateToken(updatedUser._id),
     });
   } else {
     res.status(404).json({ message: 'User not found' });
@@ -89,4 +132,4 @@ const getTalents = async (req, res) => {
   }
 };
 
-export { registerUser, authUser, getUserProfile, getTalents };
+export { registerUser, authUser, getUserProfile, updateUserProfile, getTalents };

@@ -26,7 +26,7 @@ import { startupList } from '../data/localFeed';
 import { SessionContext } from '../context/SessionProvider.jsx';
 
 const RecentStartups = () => {
-  const { currentUser, fetchApi } = useContext(SessionContext);
+  const { currentUser, fetchApi, setGlobalLoading } = useContext(SessionContext);
   const [startups, setStartups] = useState([]);
   const [selectedStartup, setSelectedStartup] = useState(null);
   const [pitchText, setPitchText] = useState('');
@@ -70,6 +70,7 @@ const RecentStartups = () => {
   };
 
   const handleSubmitApplication = async () => {
+    setGlobalLoading(true);
     try {
       await fetchApi('/applications', {
         method: 'POST',
@@ -100,6 +101,7 @@ const RecentStartups = () => {
 
     setSnackbarOpen(true);
     handleCloseApply();
+    setGlobalLoading(false);
   };
 
   return (

@@ -7,7 +7,7 @@ const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [errMessage, setErrMessage] = useState("");
-  const { loginUser, currentUser } = useContext(SessionContext);
+  const { loginUser, currentUser, setGlobalLoading } = useContext(SessionContext);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -19,10 +19,17 @@ const Login = () => {
   const handleFormSubmit = async (e) => {
     e.preventDefault();
     setErrMessage("");
+    setGlobalLoading(true);
+    
+    // Artificial delay to show the aesthetic loader
+    await new Promise(resolve => setTimeout(resolve, 800));
+
     try {
       await loginUser(email, password);
+      setGlobalLoading(false);
       navigate("/dashboard");
     } catch (err) {
+      setGlobalLoading(false);
       setErrMessage(err.message || "Failed to authenticate");
     }
   };

@@ -6,7 +6,7 @@ import { SessionContext } from '../context/SessionProvider.jsx';
 const initialTasks = [];
 
 export default function Workspaces() {
-  const { currentUser, fetchApi } = useContext(SessionContext);
+  const { currentUser, fetchApi, setGlobalLoading } = useContext(SessionContext);
   const [tasks, setTasks] = useState([]);
   const [startups, setStartups] = useState([]);
   const [selectedStartupId, setSelectedStartupId] = useState('');
@@ -14,7 +14,8 @@ export default function Workspaces() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [taskToDelete, setTaskToDelete] = useState(null);
   const [taskTitle, setTaskTitle] = useState('');
-  const [taskAssignee, setTaskAssignee] = useState('');
+  const [taskAssignee, setTaskAssignee] = useState('Select member');
+  const [workspaceMembers, setWorkspaceMembers] = useState(['Select member']);
 
   // Load startup lists for select dropdown
   useEffect(() => {
@@ -83,6 +84,41 @@ export default function Workspaces() {
     loadTasks();
   }, [selectedStartupId, fetchApi]);
 
+  // Load members for the selected startup
+  useEffect(() => {
+    if (!selectedStartupId) {
+      setWorkspaceMembers(['Select member']);
+      return;
+    }
+    const loadMembers = async () => {
+      try {
+        let members = ['Select member'];
+
+        // Fetch applications to find other accepted members
+        const data = await fetchApi('/applications/received');
+        if (data && Array.isArray(data)) {
+          const acceptedForStartup = data.filter(p => 
+            p.status === 'Accepted' && 
+            (p.startupId?._id === selectedStartupId || p.startupId === selectedStartupId)
+          );
+          
+          acceptedForStartup.forEach(p => {
+             if (p.applicantId && p.applicantId.name) {
+                 members.push(p.applicantId.name);
+             }
+          });
+        }
+
+        const uniqueMembers = [...new Set(members)];
+        setWorkspaceMembers(uniqueMembers);
+        setTaskAssignee(prev => uniqueMembers.includes(prev) ? prev : 'Select member');
+      } catch (e) {
+        console.error("Failed to load members:", e);
+      }
+    };
+    loadMembers();
+  }, [selectedStartupId, currentUser, fetchApi]);
+
   const moveTask = async (id, direction) => {
     const statuses = ['todo', 'inprogress', 'completed'];
     const task = tasks.find(t => t.id === id);
@@ -112,13 +148,14 @@ export default function Workspaces() {
 
   const handleAddTask = async () => {
     if (!taskTitle.trim() || !selectedStartupId) return;
+    setGlobalLoading(true);
     let taskId = Date.now();
     try {
       const data = await fetchApi(`/workspaces/${selectedStartupId}/tasks`, {
         method: 'POST',
         body: JSON.stringify({
           title: taskTitle,
-          assignee: taskAssignee || "Unassigned"
+          assignee: taskAssignee === "Select member" ? "Unassigned" : taskAssignee
         })
       });
       if (data && data._id) taskId = data._id;
@@ -129,12 +166,13 @@ export default function Workspaces() {
     const newTask = {
       id: taskId,
       title: taskTitle,
-      assignee: taskAssignee || "Unassigned",
+      assignee: taskAssignee === "Select member" ? "Unassigned" : taskAssignee,
       status: "todo"
     };
     setTasks([...tasks, newTask]);
     setTaskTitle('');
-    setTaskAssignee('');
+    setTaskAssignee('Select member');
+    setGlobalLoading(false);
     setDialogOpen(false);
   };
 
@@ -145,6 +183,7 @@ export default function Workspaces() {
 
   const handleConfirmDelete = async () => {
     if (taskToDelete && selectedStartupId) {
+      setGlobalLoading(true);
       try {
         await fetchApi(`/workspaces/${selectedStartupId}/tasks/${taskToDelete}`, {
           method: 'DELETE'
@@ -153,6 +192,7 @@ export default function Workspaces() {
         console.warn("Backend delete failed, fallback to local:", e);
       }
       setTasks(tasks.filter(t => t.id !== taskToDelete));
+      setGlobalLoading(false);
     }
     setDeleteDialogOpen(false);
     setTaskToDelete(null);
@@ -358,16 +398,22 @@ export default function Workspaces() {
             onChange={e => setTaskTitle(e.target.value)}
             sx={{ mb: 2, mt: 1, '& .MuiOutlinedInput-root': { borderRadius: 2 } }}
           />
-          <TextField
-            margin="dense"
-            label="Assignee"
-            type="text"
-            fullWidth
-            variant="outlined"
-            value={taskAssignee}
-            onChange={e => setTaskAssignee(e.target.value)}
-            sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2 } }}
-          />
+          <FormControl fullWidth margin="dense">
+            <InputLabel id="assignee-label">Assignee</InputLabel>
+            <Select
+              labelId="assignee-label"
+              value={taskAssignee}
+              label="Assignee"
+              onChange={e => setTaskAssignee(e.target.value)}
+              sx={{ borderRadius: 2, '& .MuiOutlinedInput-notchedOutline': { borderRadius: 2 } }}
+            >
+              {workspaceMembers.map(member => (
+                <MenuItem key={member} value={member}>
+                  {member}
+                </MenuItem>
+              ))}
+            </Select>
+          </FormControl>
         </DialogContent>
         <DialogActions sx={{ px: 3, pb: 2 }}>
           <Button onClick={() => setDialogOpen(false)} variant="outlined" sx={{ borderRadius: 2, textTransform: 'none' }}>

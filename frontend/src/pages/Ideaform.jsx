@@ -4,7 +4,7 @@ import { Delete as DeleteIcon } from "@mui/icons-material";
 import { SessionContext } from "../context/SessionProvider.jsx";
 
 const Ideaform = () => {
-  const { currentUser, fetchApi } = useContext(SessionContext);
+  const { currentUser, fetchApi, setGlobalLoading } = useContext(SessionContext);
   const [vals, setVals] = useState({
     startuptitle: "",
     category: "",
@@ -53,6 +53,7 @@ const Ideaform = () => {
 
   const handleFormSubmit = async (e) => {
     e.preventDefault();
+    setGlobalLoading(true);
 
     const skillsArray = vals.skillsRequired
       .split(",")
@@ -77,11 +78,13 @@ const Ideaform = () => {
       setSnackbarOpen(true);
       handleClear();
       loadProjects(); // Refresh listing instantly
+      setGlobalLoading(false);
     } catch (error) {
       console.log(error);
       setSeverity("error");
       setSnackbarMsg(error.message || "Something went wrong");
       setSnackbarOpen(true);
+      setGlobalLoading(false);
     }
   };
 
@@ -108,6 +111,7 @@ const Ideaform = () => {
 
   const handleConfirmDelete = async () => {
     if (projectToDelete) {
+      setGlobalLoading(true);
       try {
         await fetchApi(`/idea/${projectToDelete}`, {
           method: "DELETE"
@@ -122,6 +126,7 @@ const Ideaform = () => {
         setSnackbarMsg(error.message || "Failed to delete project");
         setSnackbarOpen(true);
       }
+      setGlobalLoading(false);
     }
     setDeleteDialogOpen(false);
     setProjectToDelete(null);

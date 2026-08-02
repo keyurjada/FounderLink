@@ -4,20 +4,20 @@ import { ExpandMore as ExpandMoreIcon } from '@mui/icons-material';
 
 const faqs = [
   {
-    q: "How does the co-founder matching score work?",
-    a: "We calculate the match score based on skill overlap (e.g. skills a startup requires vs. skills listed on a developer profile), roles preferences, and geographical location splits."
+    q: "How do I create a new Startup Project?",
+    a: "Navigate to the 'Create Startup Project' section from your dashboard to list a new opportunity. You'll need to specify your startup title, category, equity offering, and required skills."
   },
   {
-    q: "Can I sign up as both a Talent and a Founder?",
-    a: "Currently, each profile is restricted to one role to maintain high search relevance. However, you can register a separate developer account or founder account using different emails."
+    q: "How do I review applications from coders?",
+    a: "Check the 'Review Received Applications' tab on your dashboard. From there, you can view the coder's profile, read their pitch, and choose to accept or reject their application."
   },
   {
-    q: "How do workspace Kanban boards work?",
-    a: "Once a founder accepts your application pitch, you are automatically assigned a shared workspace board where you can add task tickets, move task lanes, and manage project iterations."
+    q: "What happens when I accept an application?",
+    a: "A new Team Workspace is automatically created for your startup, allowing you to collaborate with the accepted coder via Kanban boards and task management."
   },
   {
-    q: "Is my personal data secure?",
-    a: "Yes. In the default sandbox, your session credentials are stored completely client-side in your local browser storage. For production settings, connection configurations use secure HTTPS requests and MongoDB Atlas."
+    q: "Can I manage multiple Startup Projects?",
+    a: "Yes! You can create and manage multiple Startup Projects simultaneously. Each project will have its own dedicated workspace and application queue."
   }
 ];
 
@@ -39,10 +39,10 @@ export default function Help() {
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
       <Box>
         <Typography variant="h4" fontWeight="bold" sx={{ color: 'text.primary', letterSpacing: '-0.5px' }}>
-          Help Center & FAQs
+          Founder Help Center
         </Typography>
         <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
-          Frequently asked questions, system support channels, and direct inquiry tickets.
+          Frequently asked questions, startup management guides, and founder support channels.
         </Typography>
       </Box>
 
