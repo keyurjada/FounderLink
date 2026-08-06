@@ -3,7 +3,7 @@ import { Backdrop, CircularProgress, Box, Typography } from '@mui/material';
 
 export const SessionContext = createContext();
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api/auth';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5005/api/auth';
 
 const demoUsers = [
   {
@@ -41,7 +41,7 @@ const requestJson = async (path, options = {}) => {
 
 export const fetchApi = async (endpoint, options = {}) => {
   const token = localStorage.getItem('auth_token');
-  const baseUrl = 'http://localhost:5000/api';
+  const baseUrl = 'http://localhost:5005/api';
 
   const getLocal = (key, defaultValue = []) => {
     try {
