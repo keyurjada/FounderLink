@@ -1,4 +1,4 @@
-import React, { useState, useContext, useRef } from 'react';
+import React, { useState, useContext, useRef, useEffect } from 'react';
 import { Box, Typography, Card, CardContent, Grid, TextField, Button, Alert, Avatar, IconButton } from '@mui/material';
 import { PhotoCamera } from '@mui/icons-material';
 import { SessionContext } from '../../context/SessionProvider.jsx';
@@ -16,6 +16,30 @@ export default function Settings() {
   const [error, setError] = useState('');
   const fileInputRef = useRef(null);
 
+  useEffect(() => {
+    if (!currentUser) return;
+
+    setName(currentUser.name || '');
+    setEmail(currentUser.email || '');
+    setPhone(currentUser.phone || '');
+    setTitle(currentUser.title || '');
+    setProfilePic(currentUser.profilePicture || '');
+
+    const normalizeList = (value) => {
+      if (Array.isArray(value)) return value;
+      if (typeof value === 'string') {
+        return value
+          .split(',')
+          .map((item) => item.trim())
+          .filter(Boolean);
+      }
+      return [];
+    };
+
+    setSkills(normalizeList(currentUser.skills));
+    setLanguages(normalizeList(currentUser.languages));
+  }, [currentUser]);
+
   const handleImageChange = (e) => {
     const file = e.target.files[0];
     if (file) {
@@ -31,13 +55,12 @@ export default function Settings() {
       reader.readAsDataURL(file);
     }
   };
-   const [skills, setSkills] = useState(
-  currentUser?.skills || []
-);
+   const [skills, setSkills] = useState(currentUser?.skills || []);
 
 const [languages, setLanguages] = useState(
   currentUser?.languages || []
 );
+
 
   const handleSave = async (e) => {
     e.preventDefault();
@@ -110,7 +133,7 @@ const [languages, setLanguages] = useState(
                   fontWeight: 'bold'
                 }}
               >
-                {!profilePic && name.charAt(0).toUpperCase()}
+                {!profilePic && (name ? name.charAt(0).toUpperCase() : '')}
               </Avatar>
               <IconButton
                 color="primary"
@@ -143,14 +166,16 @@ const [languages, setLanguages] = useState(
           </Box>
           
          <form onSubmit={handleSave}>
-  <Grid container spacing={3}>
+  <Grid container spacing={2}>
 
+    {/* Error */}
     {error && (
       <Grid item xs={12}>
         <Alert severity="error">{error}</Alert>
       </Grid>
     )}
 
+    {/* Success */}
     {success && (
       <Grid item xs={12}>
         <Alert severity="success">
@@ -168,10 +193,10 @@ const [languages, setLanguages] = useState(
         value={name}
         InputProps={{ readOnly: true }}
         sx={{
-          '& .MuiFilledInput-root': {
+          "& .MuiFilledInput-root": {
             borderRadius: 2,
-            backgroundColor: 'action.hover'
-          }
+            backgroundColor: "action.hover",
+          },
         }}
       />
     </Grid>
@@ -186,9 +211,9 @@ const [languages, setLanguages] = useState(
         onChange={(e) => setPhone(e.target.value)}
         placeholder="e.g. +1 234 567 8900"
         sx={{
-          '& .MuiFilledInput-root': {
-            borderRadius: 2
-          }
+          "& .MuiFilledInput-root": {
+            borderRadius: 2,
+          },
         }}
       />
     </Grid>
@@ -202,10 +227,10 @@ const [languages, setLanguages] = useState(
         value={email}
         InputProps={{ readOnly: true }}
         sx={{
-          '& .MuiFilledInput-root': {
+          "& .MuiFilledInput-root": {
             borderRadius: 2,
-            backgroundColor: 'action.hover'
-          }
+            backgroundColor: "action.hover",
+          },
         }}
       />
     </Grid>
@@ -219,10 +244,10 @@ const [languages, setLanguages] = useState(
         value={title}
         InputProps={{ readOnly: true }}
         sx={{
-          '& .MuiFilledInput-root': {
+          "& .MuiFilledInput-root": {
             borderRadius: 2,
-            backgroundColor: 'action.hover'
-          }
+            backgroundColor: "action.hover",
+          },
         }}
       />
     </Grid>
@@ -233,11 +258,11 @@ const [languages, setLanguages] = useState(
         fullWidth
         label="Skills"
         variant="filled"
-        value={skills.join(', ')}
+        value={skills.join(", ")}
         onChange={(e) => {
           setSkills(
             e.target.value
-              .split(',')
+              .split(",")
               .map((skill) => skill.trim())
               .filter(Boolean)
           );
@@ -245,9 +270,9 @@ const [languages, setLanguages] = useState(
         placeholder="React, Node.js, MongoDB, Express"
         helperText="Separate multiple skills with commas"
         sx={{
-          '& .MuiFilledInput-root': {
-            borderRadius: 2
-          }
+          "& .MuiFilledInput-root": {
+            borderRadius: 2,
+          },
         }}
       />
     </Grid>
@@ -258,11 +283,11 @@ const [languages, setLanguages] = useState(
         fullWidth
         label="Languages"
         variant="filled"
-        value={languages.join(', ')}
+        value={languages.join(", ")}
         onChange={(e) => {
           setLanguages(
             e.target.value
-              .split(',')
+              .split(",")
               .map((language) => language.trim())
               .filter(Boolean)
           );
@@ -270,9 +295,9 @@ const [languages, setLanguages] = useState(
         placeholder="English, Hindi, Gujarati"
         helperText="Separate multiple languages with commas"
         sx={{
-          '& .MuiFilledInput-root': {
-            borderRadius: 2
-          }
+          "& .MuiFilledInput-root": {
+            borderRadius: 2,
+          },
         }}
       />
     </Grid>
@@ -283,8 +308,8 @@ const [languages, setLanguages] = useState(
       xs={12}
       sx={{
         mt: 2,
-        display: 'flex',
-        justifyContent: 'flex-end'
+        display: "flex",
+        justifyContent: "flex-end",
       }}
     >
       <Button
@@ -295,8 +320,8 @@ const [languages, setLanguages] = useState(
           borderRadius: 2,
           px: 4,
           py: 1.2,
-          fontWeight: 'bold',
-          textTransform: 'none'
+          fontWeight: "bold",
+          textTransform: "none",
         }}
       >
         Save Changes

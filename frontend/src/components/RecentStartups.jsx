@@ -29,7 +29,7 @@ const RecentStartups = () => {
   const { currentUser, fetchApi, setGlobalLoading } = useContext(SessionContext);
   const [startups, setStartups] = useState([]);
   const [selectedStartup, setSelectedStartup] = useState(null);
-  const [pitchText, setPitchText] = useState('');
+  const [resumeFile, setResumeFile] = useState(null);
   const [snackbarOpen, setSnackbarOpen] = useState(false);
 
  useEffect(() => {
@@ -91,46 +91,68 @@ const RecentStartups = () => {
 
   const handleOpenApply = (startup) => {
     setSelectedStartup(startup);
+    setResumeFile(null);
   };
 
   const handleCloseApply = () => {
     setSelectedStartup(null);
-    setPitchText('');
+    setResumeFile(null);
   };
 
   const handleSubmitApplication = async () => {
-    setGlobalLoading(true);
-    try {
-      await fetchApi('/applications', {
-        method: 'POST',
-        body: JSON.stringify({
-          startupId: selectedStartup.id,
-          pitchText: pitchText
-        })
-      });
-    } catch (e) {
-      console.warn("Backend submit failed, using localStorage fallback:", e);
+    if (!selectedStartup || !resumeFile) {
+      return;
     }
 
-    const activePitches = JSON.parse(localStorage.getItem('active_pitches') || '[]');
-    const newPitch = {
-      id: Date.now(),
-      startupName: selectedStartup.name,
-      founder: selectedStartup.founder,
-      pitchText: pitchText,
-      status: "Under Review",
-      time: "Just now",
-      color: "warning"
-    };
-    activePitches.push(newPitch);
-    localStorage.setItem('active_pitches', JSON.stringify(activePitches));
+    setGlobalLoading(true);
 
-    // Alert other widgets/menus that storage changed
-    window.dispatchEvent(new Event('storage'));
+    try {
+      const formData = new FormData();
+      formData.append('startupId', selectedStartup.id);
+      formData.append('resume', resumeFile);
 
-    setSnackbarOpen(true);
-    handleCloseApply();
-    setGlobalLoading(false);
+      await fetchApi('/applications', {
+        method: 'POST',
+        body: formData
+      });
+
+      const activePitches = JSON.parse(localStorage.getItem('active_pitches') || '[]');
+      const newPitch = {
+        id: Date.now(),
+        startupName: selectedStartup.name,
+        founder: selectedStartup.founder,
+        pitchText: 'Resume uploaded for review',
+        status: 'Under Review',
+        time: 'Just now',
+        color: 'warning'
+      };
+      activePitches.push(newPitch);
+      localStorage.setItem('active_pitches', JSON.stringify(activePitches));
+
+      window.dispatchEvent(new Event('storage'));
+      setSnackbarOpen(true);
+      handleCloseApply();
+    } catch (e) {
+      console.warn('Backend submit failed, using localStorage fallback:', e);
+
+      const activePitches = JSON.parse(localStorage.getItem('active_pitches') || '[]');
+      const newPitch = {
+        id: Date.now(),
+        startupName: selectedStartup.name,
+        founder: selectedStartup.founder,
+        pitchText: 'Resume uploaded for review',
+        status: 'Under Review',
+        time: 'Just now',
+        color: 'warning'
+      };
+      activePitches.push(newPitch);
+      localStorage.setItem('active_pitches', JSON.stringify(activePitches));
+      window.dispatchEvent(new Event('storage'));
+      setSnackbarOpen(true);
+      handleCloseApply();
+    } finally {
+      setGlobalLoading(false);
+    }
   };
 
   return (
@@ -280,26 +302,59 @@ const RecentStartups = () => {
             </DialogTitle>
             <DialogContent>
               <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-                Tell about your expertise directly to <strong>{selectedStartup.founder}</strong>. Mention why you are interested in their equity offering of {selectedStartup.equity}.
+                Upload your resume so the founder can review your profile and experience for this startup opportunity.
               </Typography>
-              <TextField
-                autoFocus
-                margin="dense"
-                label="Introduce yourself"
-                type="text"
-                fullWidth
-                multiline
-                rows={4}
-                variant="outlined"
-                value={pitchText}
-                onChange={(e) => setPitchText(e.target.value)}
-                placeholder="Hi! I am a full stack developer with experience in React and Node..."
+
+              <Box
                 sx={{
-                  '& .MuiOutlinedInput-root': {
-                    borderRadius: 2
+                  border: '2px dashed',
+                  borderColor: 'divider',
+                  borderRadius: 3,
+                  p: 4,
+                  textAlign: 'center',
+                  cursor: 'pointer',
+                  '&:hover': {
+                    borderColor: 'primary.main',
+                    backgroundColor: 'action.hover'
                   }
                 }}
-              />
+                onClick={() => document.getElementById('dashboard-pdf-upload').click()}
+              >
+                <Typography variant="body1" fontWeight="bold" sx={{ mb: 1 }}>
+                  {resumeFile ? resumeFile.name : 'Upload your resume / profile PDF'}
+                </Typography>
+
+                <Typography variant="body2" color="text.secondary">
+                  Click here to select a PDF file
+                </Typography>
+
+                <input
+                  id="dashboard-pdf-upload"
+                  type="file"
+                  accept="application/pdf"
+                  hidden
+                  onChange={(e) => {
+                    const file = e.target.files[0];
+                    if (file) {
+                      setResumeFile(file);
+                    }
+                  }}
+                />
+
+                {resumeFile && (
+                  <Typography
+                    variant="caption"
+                    color="success.main"
+                    sx={{
+                      display: 'block',
+                      mt: 2,
+                      fontWeight: 'bold'
+                    }}
+                  >
+                    PDF selected ✓
+                  </Typography>
+                )}
+              </Box>
             </DialogContent>
             <DialogActions sx={{ px: 3, pb: 2 }}>
               <Button onClick={handleCloseApply} variant="outlined" sx={{ borderRadius: 2, textTransform: 'none' }}>
@@ -308,7 +363,7 @@ const RecentStartups = () => {
               <Button 
                 onClick={handleSubmitApplication} 
                 variant="contained" 
-                disabled={!pitchText.trim()}
+                disabled={!resumeFile}
                 sx={{ borderRadius: 2, textTransform: 'none' }}
               >
                 Send Application

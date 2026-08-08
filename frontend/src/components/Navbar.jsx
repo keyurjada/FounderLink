@@ -430,10 +430,16 @@ const Navbar = ({ onDrawerToggle }) => {
             </Typography>
           </Box>
           <Divider />
-          <MenuItem onClick={handleProfileMenuClose} sx={{ py: 1, gap: 1.5 }}>
-            <PersonIcon fontSize="small" color="action" />
-            <Typography variant="body2">My Profile</Typography>
-          </MenuItem>
+          <MenuItem
+  onClick={() => {
+    handleProfileMenuClose();
+    navigate("/settings");
+  }}
+  sx={{ py: 1, gap: 1.5 }}
+>
+  <PersonIcon fontSize="small" color="action" />
+  <Typography variant="body2">My Profile</Typography>
+</MenuItem>
           <MenuItem onClick={handleProfileMenuClose} sx={{ py: 1, gap: 1.5 }}>
             <SettingsIcon fontSize="small" color="action" />
             <Typography variant="body2">Settings</Typography>

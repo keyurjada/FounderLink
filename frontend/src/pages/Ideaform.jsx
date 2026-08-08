@@ -133,7 +133,7 @@ const Ideaform = () => {
   };
 
   return (
-    <Box sx={{ display: "flex", flexDirection: "column", gap: 4, maxWidth: 900, mx: "auto", pb: 6 }}>
+    <Box sx={{ display: "flex", flexDirection: "column", gap: 3, width: "100%" ,maxWidth: 1200, mx: "auto", pb: 4 }}>
       <Box>
         <Typography variant="h4" fontWeight="bold" sx={{ color: "text.primary", letterSpacing: "-0.5px" }}>
           Startup Project Settings
