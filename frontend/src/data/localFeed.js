@@ -139,11 +139,11 @@ export const shortcuts = [
     btnText: "Browse Startups",
     color: "secondary"
   },
-  {
-    id: "legal-agreements",
-    title: "View Equity Templates",
-    desc: "Read standard co-founder vesting agreements and dynamic split documents.",
-    btnText: "Access Documents",
-    color: "info"
-  }
+  // {
+  //   id: "legal-agreements",
+  //   title: "View Equity Templates",
+  //   desc: "Read standard co-founder vesting agreements and dynamic split documents.",
+  //   btnText: "Access Documents",
+  //   color: "info"
+  // }
 ];

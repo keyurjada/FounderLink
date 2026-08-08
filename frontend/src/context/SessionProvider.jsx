@@ -73,10 +73,44 @@ export const fetchApi = async (endpoint, options = {}) => {
 
   const executeLocalMock = (endpoint, options) => {
     const method = options.method || 'GET';
-    const body = options.body ? JSON.parse(options.body) : {};
+
+    const parseBody = () => {
+      if (!options.body) return {};
+      if (options.body instanceof FormData) {
+        return Object.fromEntries(options.body.entries());
+      }
+      if (typeof options.body === 'string') {
+        try {
+          return JSON.parse(options.body);
+        } catch {
+          return {};
+        }
+      }
+      return options.body;
+    };
+
+    const body = parseBody();
 
     if (endpoint === '/idea') {
-      return getLocal('local_ideas');
+      const ideas = getLocal('local_ideas');
+      const profiles = getLocal('saved_profiles', []);
+
+      return ideas.map((idea) => {
+        const ownerId = idea.userId?._id || idea.userId;
+        const profile = profiles.find((user) => user._id === ownerId || user.email === ownerId);
+
+        if (typeof idea.userId === 'object' && idea.userId?.name) {
+          return idea;
+        }
+
+        return {
+          ...idea,
+          userId: {
+            _id: ownerId,
+            name: profile?.name || 'Founder'
+          }
+        };
+      });
     }
     if (endpoint === '/idea/create') {
       const activeSession = localStorage.getItem('active_session');
@@ -154,6 +188,21 @@ export const fetchApi = async (endpoint, options = {}) => {
       return updated;
     }
 
+    if (endpoint === '/applications' && method === 'POST') {
+      const startupId = body.startupId || body.get?.('startupId');
+      const resumeFile = body.resume || body.get?.('resume');
+      const newApplication = {
+        _id: 'application_' + Date.now(),
+        startupId,
+        resume: resumeFile?.name || 'resume.pdf',
+        status: 'pending',
+        createdAt: new Date().toISOString()
+      };
+      const currentApplications = getLocal('local_applications');
+      currentApplications.push(newApplication);
+      setLocal('local_applications', currentApplications);
+      return { message: 'Application sent successfully', data: newApplication };
+    }
     if (endpoint === '/applications' || endpoint === '/applications/received') {
       return getLocal('local_applications');
     }
@@ -232,14 +281,16 @@ export const fetchApi = async (endpoint, options = {}) => {
   }
 
   try {
-    const response = await fetch(`${baseUrl}${endpoint}`, {
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`,
-        ...(options.headers || {})
-      },
-      ...options
-    });
+    const isFormData = options.body instanceof FormData;
+
+const response = await fetch(`${baseUrl}${endpoint}`, {
+  headers: {
+    ...(isFormData ? {} : { 'Content-Type': 'application/json' }),
+    'Authorization': `Bearer ${token}`,
+    ...(options.headers || {})
+  },
+  ...options
+});
 
     if (response.status === 401) {
       console.warn(`Unauthorized (401) on ${endpoint}. Executing offline fallback.`);

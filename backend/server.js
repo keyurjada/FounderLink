@@ -10,6 +10,7 @@ import applicationRoutes from './src/routes/applicationRoutes.js';
 import workspaceRoutes from './src/routes/workspaceRoutes.js';
 import messageRoutes from './src/routes/messageRoutes.js';
 import notificationRoutes from './src/routes/notificationRoutes.js';
+import path from 'path';
 dotenv.config();
 
 // Connect to Database
@@ -26,6 +27,7 @@ const io = new Server(server, {
 
 app.use(cors());
 app.use(express.json({ limit: '5mb' }));
+app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
 
 // Routes
 app.use('/api/auth', authRoutes);

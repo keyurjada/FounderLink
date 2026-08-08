@@ -1,4 +1,5 @@
 import express from "express";
+import uploadResume from "../middleware/uploadMiddleware.js";
 import {
   createApplication,
   getApplications,
@@ -13,7 +14,7 @@ const router = express.Router();
 
 router
   .route("/")
-  .post(protect, createApplication)
+  .post(protect, uploadResume.single("resume"), createApplication)
   .get(protect, getApplications);
 
 router.route("/accepted").get(protect, getAcceptedApplications);

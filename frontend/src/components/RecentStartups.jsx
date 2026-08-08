@@ -280,12 +280,12 @@ const RecentStartups = () => {
             </DialogTitle>
             <DialogContent>
               <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-                Pitch your expertise directly to <strong>{selectedStartup.founder}</strong>. Mention why you are interested in their equity offering of {selectedStartup.equity}.
+                Tell about your expertise directly to <strong>{selectedStartup.founder}</strong>. Mention why you are interested in their equity offering of {selectedStartup.equity}.
               </Typography>
               <TextField
                 autoFocus
                 margin="dense"
-                label="Your Pitch / Cover Letter"
+                label="Introduce yourself"
                 type="text"
                 fullWidth
                 multiline
@@ -311,7 +311,7 @@ const RecentStartups = () => {
                 disabled={!pitchText.trim()}
                 sx={{ borderRadius: 2, textTransform: 'none' }}
               >
-                Send Pitch
+                Send Application
               </Button>
             </DialogActions>
           </>
@@ -326,7 +326,7 @@ const RecentStartups = () => {
         anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
       >
         <Alert onClose={() => setSnackbarOpen(false)} severity="success" sx={{ width: '100%', borderRadius: 2 }}>
-          Pitch submitted successfully! Founder has been notified.
+          Application submitted successfully! Founder has been notified.
         </Alert>
       </Snackbar>
     </Box>

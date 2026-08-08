@@ -14,7 +14,11 @@ const applicationSchema = new mongoose.Schema(
     },
     pitchText: {
       type: String,
-      required: true
+      default: "",
+    },
+    resume: {
+      type: String,
+      default:"",
     },
     status: {
       type: String,

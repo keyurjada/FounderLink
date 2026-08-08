@@ -5,34 +5,50 @@ import Notification from '../models/Notification.js';
 
 // Create a new application/pitch
 const createApplication = async (req, res) => {
-  const { startupId, pitchText } = req.body;
+  const { startupId } = req.body;
 
   try {
-    if (!startupId || !pitchText || !pitchText.trim()) {
-      return res.status(400).json({ message: 'Startup and pitch text are required' });
+    if (!startupId) {
+      return res.status(400).json({
+        message: "Startup is required",
+      });
+    }
+
+    if (!req.file) {
+      return res.status(400).json({
+        message: "Resume PDF is required",
+      });
     }
 
     const existing = await Application.findOne({
       startupId,
-      applicantId: req.user._id
+      applicantId: req.user._id,
     });
 
     if (existing) {
-      return res.status(409).json({ message: 'You already applied to this startup' });
+      return res.status(409).json({
+        message: "You already applied to this startup",
+      });
     }
 
     const application = await Application.create({
       startupId,
       applicantId: req.user._id,
-      pitchText: pitchText.trim(),
-      status: 'Pending'
+      pitchText: "",
+      resume: req.file.path,
+      status: "Pending",
     });
 
     res.status(201).json(application);
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    console.error("Create application error:", error);
+
+    res.status(500).json({
+      message: error.message,
+    });
   }
 };
+
 
 // Fetch user's applications
 const getApplications = async (req, res) => {

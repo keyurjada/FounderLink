@@ -98,7 +98,7 @@ export default function Applications() {
         <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
           {isFounder 
             ? "Review and approve/reject co-founder applications submitted by developers to join your startup projects." 
-            : "Track and manage your submitted pitches, partnership applications, and co-founder match status."}
+            : "Track and manage your submitted application, partnership applications, and co-founder match status."}
         </Typography>
       </Box>
 

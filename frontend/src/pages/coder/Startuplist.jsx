@@ -9,6 +9,12 @@ import {
   Button,
   TextField,
   InputAdornment,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Snackbar,
+  Alert,
 } from "@mui/material";
 
 import {
@@ -25,7 +31,9 @@ export default function Match() {
   const [searchTerm, setSearchTerm] = useState("");
   const [startups, setStartups] = useState([]);
   const [loading, setLoading] = useState(true);
-
+  const [selectedStartup, setSelectedStartup] = useState(null);
+  const [resumeFile, setResumeFile] = useState(null);
+  const [snackbarOpen, setSnackbarOpen] = useState(false);
   // Load startup ideas for CODER/TALENT
   useEffect(() => {
     const loadStartups = async () => {
@@ -62,16 +70,76 @@ export default function Match() {
   }, [currentUser, fetchApi]);
 
   // Search startup projects
+  const getFounderName = (startup) => {
+  const user = startup?.userId;
+
+  if (!user || typeof user !== "object") {
+    return "Founder";
+  }
+
+  if (user.name?.trim()) {
+    return user.name;
+  }
+
+  const fullName = `${user.firstname || ""} ${user.lastname || ""}`.trim();
+
+  return fullName || "Founder";
+};
+
   const filteredStartups = startups.filter((startup) => {
-    const search = searchTerm.toLowerCase();
+    const search = searchTerm.toLowerCase().trim();
+
+    if (!search) return true;
+
+    const projectName = (startup.startuptitle || "").toLowerCase();
+    const category = (startup.category || "").toLowerCase();
+    const description = (startup.description || "").toLowerCase();
+    const skills = (startup.skillsRequired || []).join(" ").toLowerCase();
 
     return (
-      startup.title?.toLowerCase().includes(search) ||
-      startup.description?.toLowerCase().includes(search) ||
-      startup.category?.toLowerCase().includes(search) ||
-      startup.technologies?.some((tech) => tech.toLowerCase().includes(search))
+      projectName.includes(search) ||
+      category.includes(search) ||
+      description.includes(search) ||
+      skills.includes(search)
     );
   });
+
+  // Open popup
+  const handleOpenApply = (startup) => {
+    setSelectedStartup(startup);
+    setResumeFile(null);
+  };
+
+  // Close popup
+  const handleCloseApply = () => {
+    setSelectedStartup(null);
+    setResumeFile(null);
+  };
+
+  // Send application
+  const handleSubmitApplication = async () => {
+  if (!selectedStartup || !resumeFile) {
+    return;
+  }
+
+  try {
+    const formData = new FormData();
+
+    formData.append("startupId", selectedStartup._id);
+    formData.append("resume", resumeFile);
+
+    await fetchApi("/applications", {
+      method: "POST",
+      body: formData,
+    });
+
+    setSnackbarOpen(true);
+    handleCloseApply();
+  } catch (error) {
+    console.error("Application error:", error);
+    alert(error.message || "Unable to send application");
+  }
+};
 
   return (
     <Box
@@ -283,21 +351,16 @@ export default function Match() {
                   </Box>
 
                   {/* Founder */}
-                  {startup.userId && (
+                 
                     <Typography
                       variant="caption"
                       color="text.secondary"
                       sx={{ mb: 2 }}
                     >
                       Posted by{" "}
-                      <strong>
-                        {startup.userId.name ||
-                          `${startup.userId.firstname || ""} ${
-                            startup.userId.lastname || ""
-                          }`}
-                      </strong>
+                      <strong>{getFounderName(startup)}</strong>
                     </Typography>
-                  )}
+                  
 
                   {/* Apply button */}
                   <Button
@@ -310,21 +373,7 @@ export default function Match() {
                       textTransform: "none",
                       fontWeight: "bold",
                     }}
-                    onClick={async () => {
-                      try {
-                        const pitchText = `Hi! I am interested in joining ${startup.startuptitle || 'this startup'} and helping build the product.`;
-                        await fetchApi('/applications', {
-                          method: 'POST',
-                          body: JSON.stringify({
-                            startupId: startup._id,
-                            pitchText
-                          })
-                        });
-                        alert(`Application sent for ${startup.startuptitle || 'this startup'}`);
-                      } catch (error) {
-                        alert(error.message || 'Unable to send application');
-                      }
-                    }}
+                    onClick={() => handleOpenApply(startup)}
                   >
                     Apply to Project
                   </Button>
@@ -334,6 +383,145 @@ export default function Match() {
           ))}
         </Grid>
       )}
+
+      {/* Application Popup */}
+      <Dialog
+        open={Boolean(selectedStartup)}
+        onClose={handleCloseApply}
+        fullWidth
+        maxWidth="sm"
+        PaperProps={{
+          sx: {
+            borderRadius: 3,
+            p: 1.5,
+            backgroundColor: "background.paper",
+            border: "1px solid",
+            borderColor: "divider",
+            backgroundImage: "none",
+          },
+        }}
+      >
+        {selectedStartup && (
+          <>
+            <DialogTitle sx={{ fontWeight: "bold", pb: 1 }}>
+              Apply to join {selectedStartup.startuptitle}
+            </DialogTitle>
+
+            <DialogContent>
+              <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+                Tell the founder about your expertise and why you are interested
+                in joining this startup.
+              </Typography>
+
+             <Box
+  sx={{
+    border: "2px dashed",
+    borderColor: "divider",
+    borderRadius: 3,
+    p: 4,
+    textAlign: "center",
+    cursor: "pointer",
+    "&:hover": {
+      borderColor: "primary.main",
+      backgroundColor: "action.hover",
+    },
+  }}
+  onClick={() => document.getElementById("pdf-upload").click()}
+>
+  <Typography
+    variant="body1"
+    fontWeight="bold"
+    sx={{ mb: 1 }}
+  >
+    {resumeFile ? resumeFile.name : "Upload your resume / profile PDF"}
+  </Typography>
+
+  <Typography
+    variant="body2"
+    color="text.secondary"
+  >
+    Click here to select a PDF file
+  </Typography>
+
+  <input
+    id="pdf-upload"
+    type="file"
+    accept="application/pdf"
+    hidden
+    onChange={(e) => {
+      const file = e.target.files[0];
+
+      if (file) {
+        setResumeFile(file);
+      }
+    }}
+  />
+
+  {resumeFile && (
+    <Typography
+      variant="caption"
+      color="success.main"
+      sx={{
+        display: "block",
+        mt: 2,
+        fontWeight: "bold",
+      }}
+    >
+      PDF selected ✓
+    </Typography>
+  )}
+</Box>
+            </DialogContent>
+
+            <DialogActions sx={{ px: 3, pb: 2 }}>
+              <Button
+                onClick={handleCloseApply}
+                variant="outlined"
+                sx={{
+                  borderRadius: 2,
+                  textTransform: "none",
+                }}
+              >
+                Cancel
+              </Button>
+
+             <Button
+  onClick={handleSubmitApplication}
+  variant="contained"
+  disabled={!resumeFile}
+  sx={{
+    borderRadius: 2,
+    textTransform: "none",
+  }}
+>
+  Send Application
+</Button>
+            </DialogActions>
+          </>
+        )}
+      </Dialog>
+
+      {/* Success Message */}
+      <Snackbar
+        open={snackbarOpen}
+        autoHideDuration={4000}
+        onClose={() => setSnackbarOpen(false)}
+        anchorOrigin={{
+          vertical: "bottom",
+          horizontal: "right",
+        }}
+      >
+        <Alert
+          onClose={() => setSnackbarOpen(false)}
+          severity="success"
+          sx={{
+            width: "100%",
+            borderRadius: 2,
+          }}
+        >
+          Application submitted successfully! Founder has been notified.
+        </Alert>
+      </Snackbar>
     </Box>
   );
 }
