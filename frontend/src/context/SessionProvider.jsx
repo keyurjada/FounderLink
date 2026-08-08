@@ -3,7 +3,22 @@ import { Backdrop, CircularProgress, Box, Typography } from '@mui/material';
 
 export const SessionContext = createContext();
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5005/api/auth';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5001/api/auth';
+
+const normalizeList = (value) => {
+  if (Array.isArray(value)) {
+    return value.map((item) => String(item).trim()).filter(Boolean);
+  }
+
+  if (typeof value === 'string') {
+    return value
+      .split(',')
+      .map((item) => item.trim())
+      .filter(Boolean);
+  }
+
+  return [];
+};
 
 const demoUsers = [
   {
@@ -41,7 +56,7 @@ const requestJson = async (path, options = {}) => {
 
 export const fetchApi = async (endpoint, options = {}) => {
   const token = localStorage.getItem('auth_token');
-  const baseUrl = 'http://localhost:5005/api';
+  const baseUrl = 'http://localhost:5001/api';
 
   const getLocal = (key, defaultValue = []) => {
     try {
@@ -259,8 +274,14 @@ export const SessionProvider = ({ children }) => {
               Authorization: `Bearer ${token}`
             }
           });
-          setCurrentUser(user);
-          localStorage.setItem('active_session', JSON.stringify(user));
+          const normalizedUser = {
+            ...user,
+            skills: normalizeList(user.skills),
+            languages: normalizeList(user.languages)
+          };
+
+          setCurrentUser(normalizedUser);
+          localStorage.setItem('active_session', JSON.stringify(normalizedUser));
           setLoading(false);
           return;
         } catch (error) {
@@ -283,21 +304,21 @@ export const SessionProvider = ({ children }) => {
         body: JSON.stringify({ email, password })
       });
 
+      const sessionData = {
+        _id: data._id,
+        name: data.name,
+        email: data.email,
+        role: data.role,
+        phone: data.phone || '',
+        title: data.title || (data.role === 'Founder' ? 'Founder' : 'Software Engineer'),
+        profilePicture: data.profilePicture || '',
+        skills: normalizeList(data.skills),
+        languages: normalizeList(data.languages)
+      };
+
       localStorage.setItem('auth_token', data.token);
-      localStorage.setItem('active_session', JSON.stringify({
-        _id: data._id,
-        name: data.name,
-        email: data.email,
-        role: data.role,
-        title: data.title || (data.role === 'Founder' ? 'Founder' : 'Software Engineer')
-      }));
-      setCurrentUser({
-        _id: data._id,
-        name: data.name,
-        email: data.email,
-        role: data.role,
-        title: data.title || (data.role === 'Founder' ? 'Founder' : 'Software Engineer')
-      });
+      localStorage.setItem('active_session', JSON.stringify(sessionData));
+      setCurrentUser(sessionData);
       return data;
     } catch (error) {
       const stored = localStorage.getItem('saved_profiles');
@@ -329,28 +350,24 @@ export const SessionProvider = ({ children }) => {
     try {
       const data = await requestJson('/register', {
         method: 'POST',
-        body: JSON.stringify({ name, email, password, role, phone })
+        body: JSON.stringify({ name, email, password, role, phone, title: role === 'Founder' ? 'Founder' : 'Developer / Designer' })
       });
 
+      const sessionData = {
+        _id: data._id,
+        name: data.name,
+        email: data.email,
+        role: data.role,
+        phone: data.phone || phone,
+        profilePicture: data.profilePicture || '',
+        title: data.title || (data.role === 'Founder' ? 'Founder' : 'Developer / Designer'),
+        skills: normalizeList(data.skills),
+        languages: normalizeList(data.languages)
+      };
+
       localStorage.setItem('auth_token', data.token);
-      localStorage.setItem('active_session', JSON.stringify({
-        _id: data._id,
-        name: data.name,
-        email: data.email,
-        role: data.role,
-        phone: data.phone || phone,
-        profilePicture: data.profilePicture || '',
-        title: data.title || (data.role === 'Founder' ? 'Founder' : 'Software Engineer')
-      }));
-      setCurrentUser({
-        _id: data._id,
-        name: data.name,
-        email: data.email,
-        role: data.role,
-        phone: data.phone || phone,
-        profilePicture: data.profilePicture || '',
-        title: data.title || (data.role === 'Founder' ? 'Founder' : 'Software Engineer')
-      });
+      localStorage.setItem('active_session', JSON.stringify(sessionData));
+      setCurrentUser(sessionData);
       return data;
     } catch (error) {
       const stored = localStorage.getItem('saved_profiles');

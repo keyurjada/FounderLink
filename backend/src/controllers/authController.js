@@ -9,9 +9,24 @@ const generateToken = (id) => {
   });
 };
 
+const normalizeList = (value) => {
+  if (Array.isArray(value)) {
+    return value.map((item) => String(item).trim()).filter(Boolean);
+  }
+
+  if (typeof value === 'string') {
+    return value
+      .split(',')
+      .map((item) => item.trim())
+      .filter(Boolean);
+  }
+
+  return [];
+};
+
 // Register a new user account
 const registerUser = async (req, res) => {
-  const { name, email, password, role, phone } = req.body;
+  const { name, email, password, role, phone, title } = req.body;
 
   try {
     const userExists = await User.findOne({ email });
@@ -25,7 +40,8 @@ const registerUser = async (req, res) => {
       email,
       password,
       role,
-      phone: phone || ''
+      phone: phone || '',
+      title: title || ''
     });
 
     if (user) {
@@ -35,7 +51,10 @@ const registerUser = async (req, res) => {
         email: user.email,
         role: user.role,
         phone: user.phone,
+        title: user.title || '',
         profilePicture: user.profilePicture,
+        skills: user.skills || [],
+        languages: user.languages || [],
         token: generateToken(user._id)
       });
     } else {
@@ -60,7 +79,10 @@ const authUser = async (req, res) => {
         email: user.email,
         role: user.role,
         phone: user.phone,
+        title: user.title || '',
         profilePicture: user.profilePicture,
+        skills: user.skills || [],
+        languages: user.languages || [],
         token: generateToken(user._id)
       });
     } else {
@@ -80,7 +102,10 @@ const getUserProfile = async (req, res) => {
       email: req.user.email,
       role: req.user.role,
       phone: req.user.phone,
-      profilePicture: req.user.profilePicture
+      title: req.user.title || '',
+      profilePicture: req.user.profilePicture,
+      skills: req.user.skills || [],
+      languages: req.user.languages || []
     });
   } else {
     res.status(404).json({ message: 'User not found' });
@@ -94,13 +119,20 @@ const updateUserProfile = async (req, res) => {
   if (user) {
     user.name = req.body.name || user.name;
     user.phone = req.body.phone !== undefined ? req.body.phone : user.phone;
-    
-    // We do not allow changing role or email for simplicity and security 
-    // unless extra validation is provided, but user can change phone and name.
-    
-    // If a profilePicture (base64) string is passed, update it
+    if (req.body.title !== undefined) {
+      user.title = req.body.title;
+    }
+
     if (req.body.profilePicture !== undefined) {
       user.profilePicture = req.body.profilePicture;
+    }
+
+    if (req.body.skills !== undefined) {
+      user.skills = normalizeList(req.body.skills);
+    }
+
+    if (req.body.languages !== undefined) {
+      user.languages = normalizeList(req.body.languages);
     }
 
     if (req.body.password) {
@@ -115,8 +147,11 @@ const updateUserProfile = async (req, res) => {
       email: updatedUser.email,
       role: updatedUser.role,
       phone: updatedUser.phone,
+      title: updatedUser.title || '',
       profilePicture: updatedUser.profilePicture,
-      token: generateToken(updatedUser._id),
+      skills: updatedUser.skills || [],
+      languages: updatedUser.languages || [],
+      token: generateToken(updatedUser._id)
     });
   } else {
     res.status(404).json({ message: 'User not found' });

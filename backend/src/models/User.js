@@ -25,9 +25,21 @@ const userSchema = new mongoose.Schema(
       type: String,
       default: ''
     },
+    title: {
+      type: String,
+      default: ''
+    },
     profilePicture: {
       type: String,
       default: ''
+    },
+    skills: {
+      type: [String],
+      default: []
+    },
+    languages: {
+      type: [String],
+      default: []
     }
   },
   {

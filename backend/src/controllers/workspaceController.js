@@ -1,6 +1,8 @@
 import mongoose from 'mongoose';
 import Workspace from '../models/Workspace.js';
 import Task from '../models/Task.js';
+import Ideaform from '../models/Ideaform.js';
+import Application from '../models/Application.js';
 
 // Resolve 'default' workspace ID
 const resolveWorkspaceId = async (id) => {
@@ -35,7 +37,21 @@ const resolveWorkspaceId = async (id) => {
 // Get workspaces user is part of
 const getWorkspaces = async (req, res) => {
   try {
-    const workspaces = await Workspace.find()
+    let workspaceFilter = {};
+
+    if (req.user.role === 'Founder') {
+      const founderStartups = await Ideaform.find({ userId: req.user._id }).select('_id');
+      workspaceFilter = { startupId: { $in: founderStartups.map((item) => item._id) } };
+    } else {
+      const acceptedMatches = await Application.find({
+        applicantId: req.user._id,
+        status: 'Accepted'
+      }).select('startupId');
+      const acceptedStartupIds = acceptedMatches.map((item) => item.startupId);
+      workspaceFilter = { startupId: { $in: acceptedStartupIds } };
+    }
+
+    const workspaces = await Workspace.find(workspaceFilter)
       .populate('startupId')
       .populate('matchId');
     res.json(workspaces);
@@ -63,6 +79,28 @@ const createWorkspace = async (req, res) => {
 const getWorkspaceTasks = async (req, res) => {
   try {
     const wsId = await resolveWorkspaceId(req.params.id);
+    const workspace = await Workspace.findById(wsId);
+
+    if (!workspace) {
+      return res.status(404).json({ message: 'Workspace not found' });
+    }
+
+    const isFounder = req.user.role === 'Founder';
+    const isAcceptedCoder = isFounder ? false : await Application.exists({
+      startupId: workspace.startupId,
+      applicantId: req.user._id,
+      status: 'Accepted'
+    });
+
+    const isOwner = isFounder && workspace.startupId && await Ideaform.exists({
+      _id: workspace.startupId,
+      userId: req.user._id
+    });
+
+    if (!isOwner && !isAcceptedCoder) {
+      return res.status(403).json({ message: 'You do not have access to this workspace' });
+    }
+
     const tasks = await Task.find({ workspaceId: wsId });
     res.json(tasks);
   } catch (error) {

@@ -19,7 +19,8 @@ const Register = () => {
 
   useEffect(() => {
     if (currentUser) {
-      navigate('/dashboard', { replace: true });
+      const targetRoute = currentUser.role === 'Founder' ? '/dashboard' : '/coder/dashboard';
+      navigate(targetRoute, { replace: true });
     }
   }, [currentUser, navigate]);
 
@@ -41,7 +42,8 @@ const Register = () => {
       await registerUser(nameVal, vals.email, vals.password, vals.role, vals.phone);
       setGlobalLoading(false);
       alert('Registration Successful!');
-      navigate('/dashboard');
+      const targetRoute = vals.role === 'Founder' ? '/dashboard' : '/coder/dashboard';
+      navigate(targetRoute);
     } catch (err) {
       setGlobalLoading(false);
       setErrMessage(err.message || 'Error occurred during registration');

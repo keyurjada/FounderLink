@@ -15,6 +15,10 @@ import { SessionProvider } from './context/SessionProvider.jsx';
 import ProtectedRoute from './components/ProtectedRoute.jsx';
 import Ideaform from './pages/Ideaform.jsx';
 import Home from './pages/Home.jsx';
+import CoderDashboard from './pages/coder/Dashboard.jsx';
+import CoderStartupList from'./pages/coder/Startuplist.jsx';
+import Coderapplications from'./pages/coder/Application.jsx';
+import Coderprojects from './pages/coder/Acceptedprojects.jsx'
 
 // Custom sleek dark theme palette for Material UI
 const darkTheme = createTheme({
@@ -83,12 +87,20 @@ function App() {
             <Route path="/" element={<Home />} />
             <Route path='/register' element={<Register/>}/>
             <Route path='/login' element={<Login/>}/>
-            <Route 
-              path="/dashboard" 
-              element={
+
+            <Route path="/dashboard" element={
                 <ProtectedRoute>
                   <DashboardLayout>
                     <Dashboard />
+                  </DashboardLayout>
+                </ProtectedRoute>
+              }  />
+            <Route 
+              path="/coder/dashboard" 
+              element={
+                <ProtectedRoute>
+                  <DashboardLayout>
+                    <CoderDashboard />
                   </DashboardLayout>
                 </ProtectedRoute>
               } 
@@ -103,12 +115,43 @@ function App() {
                 </ProtectedRoute>
               } 
             />
+            
+            <Route 
+              path="/coder/Startuplist" 
+              element={
+                <ProtectedRoute>
+                  <DashboardLayout>
+                    <CoderStartupList />
+                  </DashboardLayout>
+                </ProtectedRoute>
+              } 
+            />
+             <Route 
+              path="/coder/Acceptedprojects" 
+              element={
+                <ProtectedRoute>
+                  <DashboardLayout>
+                    <Coderprojects />
+                  </DashboardLayout>
+                </ProtectedRoute>
+              } 
+            />
              <Route 
               path="/match" 
               element={
                 <ProtectedRoute>
                   <DashboardLayout>
                     <Match />
+                  </DashboardLayout>
+                </ProtectedRoute>
+              } 
+            />
+             <Route 
+              path="/coder/applications" 
+              element={
+                <ProtectedRoute>
+                  <DashboardLayout>
+                    <Coderapplications />
                   </DashboardLayout>
                 </ProtectedRoute>
               } 

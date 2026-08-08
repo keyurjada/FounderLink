@@ -32,33 +32,62 @@ const RecentStartups = () => {
   const [pitchText, setPitchText] = useState('');
   const [snackbarOpen, setSnackbarOpen] = useState(false);
 
-  useEffect(() => {
-    const loadStartups = async () => {
-      try {
-        const data = await fetchApi('/idea');
-        if (data && data.length > 0) {
-          const mapped = data.map(item => ({
-            id: item._id,
-            name: item.startuptitle,
-            tagline: item.category,
-            equity: `${item.equity}%`,
-            description: item.description,
-            location: "Remote",
-            stage: "Seed",
-            skillsRequired: ["React", "Node.js"],
-            avatarColor: "#4f46e5",
-            founder: "Founder"
-          }));
-          setStartups(mapped);
-        } else {
-          setStartups([]);
-        }
-      } catch (e) {
-        setStartups([]);
-      }
-    };
-    loadStartups();
-  }, [fetchApi]);
+ useEffect(() => {
+  const loadStartups = async () => {
+    try {
+      // Get all startup projects
+      const startupData = await fetchApi('/idea');
+
+      // Get applications submitted by this coder
+      const applicationData = await fetchApi('/applications');
+
+      // Get startup IDs where founder has ACCEPTED this coder
+      const acceptedStartupIds = new Set(
+        (Array.isArray(applicationData) ? applicationData : [])
+          .filter((application) => application.status === 'Accepted')
+          .map((application) => {
+            // startupId is populated by your backend
+            if (
+              application.startupId &&
+              typeof application.startupId === 'object'
+            ) {
+              return application.startupId._id;
+            }
+
+            return application.startupId;
+          })
+      );
+
+      console.log("Accepted startup IDs:", acceptedStartupIds);
+
+      // Remove accepted projects from Co-Founder Search Pipeline
+      const availableStartups = (
+        Array.isArray(startupData) ? startupData : []
+      ).filter((startup) => !acceptedStartupIds.has(startup._id));
+
+      const mapped = availableStartups.map(item => ({
+        id: item._id,
+        name: item.startuptitle,
+        tagline: item.category,
+        equity: `${item.equity}%`,
+        description: item.description,
+        location: "Remote",
+        stage: "Seed",
+        skillsRequired: ["React", "Node.js"],
+        avatarColor: "#4f46e5",
+        founder: "Founder"
+      }));
+
+      setStartups(mapped);
+
+    } catch (e) {
+      console.error("Error loading startups:", e);
+      setStartups([]);
+    }
+  };
+
+  loadStartups();
+}, [fetchApi]);
 
   const handleOpenApply = (startup) => {
     setSelectedStartup(startup);

@@ -2,7 +2,6 @@ import React, { useState, useEffect, useContext } from 'react';
 import { Box, Typography, Grid, Card, CardContent, Avatar, Chip, Button, TextField, InputAdornment } from '@mui/material';
 import { Search as SearchIcon, FilterList as FilterIcon, Chat as ChatIcon } from '@mui/icons-material';
 import { SessionContext } from '../context/SessionProvider.jsx';
-import RecentStartups from '../components/RecentStartups.jsx';
 
 export default function Match() {
   const { currentUser, fetchApi } = useContext(SessionContext);
@@ -40,30 +39,16 @@ export default function Match() {
     c.skills.some(s => s.toLowerCase().includes(searchTerm.toLowerCase()))
   );
 
-  if (currentUser?.role === 'Talent') {
-    return (
-      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-        <Box>
-          <Typography variant="h4" fontWeight="bold" sx={{ color: 'text.primary', letterSpacing: '-0.5px' }}>
-            Explore Startups
-          </Typography>
-          <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
-            Browse and filter early-stage startup projects looking for a technical co-founder.
-          </Typography>
-        </Box>
-        <RecentStartups />
-      </Box>
-    );
-  }
+  
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
       <Box>
         <Typography variant="h4" fontWeight="bold" sx={{ color: 'text.primary', letterSpacing: '-0.5px' }}>
-          My Project Listings
+          Browse Coder
         </Typography>
         <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
-          Search and connect with technical co-founders matching your project requirements.
+          Search and connect with coders who matching your project requirements.
         </Typography>
       </Box>
 

@@ -1,4 +1,4 @@
-import React, { useState, useContext, useEffect } from "react";
+import React, { useState, useContext } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { SessionContext } from "../context/SessionProvider.jsx";
 import loginimg from "../assets/loginimg.png";
@@ -7,27 +7,35 @@ const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [errMessage, setErrMessage] = useState("");
-  const { loginUser, currentUser, setGlobalLoading } = useContext(SessionContext);
-  const navigate = useNavigate();
 
-  useEffect(() => {
-    if (currentUser) {
-      navigate("/dashboard", { replace: true });
-    }
-  }, [currentUser, navigate]);
+  const { loginUser, setGlobalLoading } = useContext(SessionContext);
+
+  const navigate = useNavigate();
 
   const handleFormSubmit = async (e) => {
     e.preventDefault();
+
     setErrMessage("");
     setGlobalLoading(true);
-    
-    // Artificial delay to show the aesthetic loader
-    await new Promise(resolve => setTimeout(resolve, 800));
 
     try {
-      await loginUser(email, password);
+      await new Promise(resolve => setTimeout(resolve, 800));
+
+      const data = await loginUser(email, password);
+
       setGlobalLoading(false);
-      navigate("/dashboard");
+
+      console.log("Logged in user:", data);
+      console.log("User role:", data.role);
+
+      if (data.role === "Founder") {
+        navigate("/dashboard");
+      } else if (data.role === "Talent") {
+        navigate("/coder/dashboard");
+      } else {
+        setErrMessage("Invalid user role.");
+      }
+
     } catch (err) {
       setGlobalLoading(false);
       setErrMessage(err.message || "Failed to authenticate");
