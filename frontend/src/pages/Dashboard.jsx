@@ -438,7 +438,7 @@ useEffect(() => {
                   </ListItemButton>
                 </ListItem>
 
-                <ListItem
+                {/* <ListItem
                   disablePadding
                   divider
                   sx={{ borderColor: "divider" }}
@@ -464,7 +464,7 @@ useEffect(() => {
                       sx={{ color: "text.secondary" }}
                     />
                   </ListItemButton>
-                </ListItem>
+                </ListItem> */}
 
                 <ListItem
                   disablePadding

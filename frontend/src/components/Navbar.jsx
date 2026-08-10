@@ -286,7 +286,7 @@ const Navbar = ({ onDrawerToggle }) => {
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
           
           {/* Notifications button */}
-          {/* <IconButton 
+          <IconButton 
             size="large" 
             aria-label="show current notifications" 
             color="inherit" 
@@ -304,7 +304,7 @@ const Navbar = ({ onDrawerToggle }) => {
             <Badge badgeContent={unreadCount} color="error">
               <NotificationsIcon fontSize="small" />
             </Badge>
-          </IconButton> */}
+          </IconButton>
 
           <Divider orientation="vertical" flexItem sx={{ height: 24, alignSelf: 'center', mx: 0.5 }} />
 

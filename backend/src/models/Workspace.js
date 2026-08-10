@@ -11,7 +11,10 @@ const workspaceSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Ideaform',
       required: true
-    }
+    },
+    githubLink: { type: String, default: '' },
+    figmaLink: { type: String, default: '' },
+    docsLink: { type: String, default: '' }
   },
   {
     timestamps: true

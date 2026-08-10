@@ -18,7 +18,8 @@ import Home from './pages/Home.jsx';
 import CoderDashboard from './pages/coder/Dashboard.jsx';
 import CoderStartupList from'./pages/coder/Startuplist.jsx';
 import Coderapplications from'./pages/coder/Application.jsx';
-import Coderprojects from './pages/coder/Acceptedprojects.jsx'
+import Coderprojects from './pages/coder/Acceptedprojects.jsx';
+import AcceptedCoders from './pages/AcceptedCoders.jsx';
 
 // Custom sleek dark theme palette for Material UI
 const darkTheme = createTheme({
@@ -162,6 +163,16 @@ function App() {
                 <ProtectedRoute>
                   <DashboardLayout>
                     <Applications />
+                  </DashboardLayout>
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/accepted-coders" 
+              element={
+                <ProtectedRoute>
+                  <DashboardLayout>
+                    <AcceptedCoders />
                   </DashboardLayout>
                 </ProtectedRoute>
               } 

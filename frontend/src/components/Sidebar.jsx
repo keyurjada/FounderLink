@@ -21,6 +21,9 @@ import {
   HelpOutline as HelpIcon,
   AdminPanelSettings as ShieldIcon,
   FolderSpecial as FolderSpecialIcon,
+  RocketLaunch as RocketIcon,
+  MoveToInbox as InboxIcon,
+  Workspaces as WorkspacesIcon
 } from "@mui/icons-material";
 import { SessionContext } from "../context/SessionProvider.jsx";
 
@@ -40,13 +43,18 @@ const Sidebar = ({ mobileOpen, onDrawerToggle }) => {
   if (currentUser?.role === "Founder") {
     menuItems.push(
        { text: "Dashboard", icon: <DashboardIcon />, path: "/dashboard" },
-      { text: "Create Startup Project", icon: <SendIcon />, path: "/Ideaform" },
-      { text: "Browse Coders", icon: <SearchIcon />, path: "/match" },
+      { text: "Create Startup Project", icon: <RocketIcon />, path: "/Ideaform" },
+      // { text: "Browse Coders", icon: <SearchIcon />, path: "/match" },
       {
         text: "Received Applications & Requests",
-        icon: <SendIcon />,
+        icon: <InboxIcon />,
         path: "/applications",
       },
+      {
+        text: "Accepted Coders Allocation",
+        icon: <GroupWorkIcon />,
+        path: "/accepted-coders",
+      }
     );
   } else if (currentUser?.role === "Talent"){
     menuItems.push(
@@ -70,7 +78,7 @@ const Sidebar = ({ mobileOpen, onDrawerToggle }) => {
     );
   }
  menuItems.push(
-    { text: 'Team Workspace', icon: <GroupWorkIcon />, path: '/workspaces' },
+    { text: 'Team Workspace', icon: <WorkspacesIcon />, path: '/workspaces' },
     // { text: 'Settings', icon: <SettingsIcon />, path: '/settings' }
   );
   

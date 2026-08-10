@@ -3,6 +3,7 @@ import Workspace from '../models/Workspace.js';
 import Task from '../models/Task.js';
 import Ideaform from '../models/Ideaform.js';
 import Application from '../models/Application.js';
+import Message from '../models/Message.js';
 
 // Resolve 'default' workspace ID
 const resolveWorkspaceId = async (id) => {
@@ -165,4 +166,68 @@ const deleteTask = async (req, res) => {
   }
 };
 
-export { getWorkspaces, createWorkspace, getWorkspaceTasks, addTask, updateTask, deleteTask };
+// Update workspace resources
+const updateWorkspaceResources = async (req, res) => {
+  const { githubLink, figmaLink, docsLink } = req.body;
+  try {
+    const wsId = await resolveWorkspaceId(req.params.id);
+    const workspace = await Workspace.findById(wsId);
+    if (!workspace) return res.status(404).json({ message: 'Workspace not found' });
+
+    // Assuming only Founder can update resources, but letting any member for simplicity
+    if (githubLink !== undefined) workspace.githubLink = githubLink;
+    if (figmaLink !== undefined) workspace.figmaLink = figmaLink;
+    if (docsLink !== undefined) workspace.docsLink = docsLink;
+
+    await workspace.save();
+    res.json(workspace);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// Get chat history for workspace
+const getWorkspaceChat = async (req, res) => {
+  try {
+    const wsId = await resolveWorkspaceId(req.params.id);
+    const messages = await Message.find({ workspaceId: wsId })
+      .populate('senderId', 'name firstname lastname role')
+      .sort({ createdAt: 1 });
+    res.json(messages);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// Send a chat message in workspace
+const sendWorkspaceMessage = async (req, res) => {
+  const { content } = req.body; 
+  try {
+    const wsId = await resolveWorkspaceId(req.params.id);
+
+    const message = await Message.create({
+      workspaceId: wsId,
+      senderId: req.user._id,
+      content
+    });
+
+    // Populate sender details before returning
+    await message.populate('senderId', 'name firstname lastname role');
+
+    res.status(201).json(message);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+export { 
+  getWorkspaces, 
+  createWorkspace, 
+  getWorkspaceTasks, 
+  addTask, 
+  updateTask, 
+  deleteTask,
+  updateWorkspaceResources,
+  getWorkspaceChat,
+  sendWorkspaceMessage
+};

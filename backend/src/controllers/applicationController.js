@@ -2,6 +2,7 @@ import mongoose from 'mongoose';
 import Application from '../models/Application.js';
 import Ideaform from '../models/Ideaform.js';
 import Notification from '../models/Notification.js';
+import { createNotification } from '../utils/notificationUtils.js';
 
 // Create a new application/pitch
 const createApplication = async (req, res) => {
@@ -34,6 +35,21 @@ const createApplication = async (req, res) => {
     });
 
     res.status(201).json(application);
+
+    // Notify Founder
+    try {
+      const startup = await Ideaform.findById(startupId).populate('userId');
+      if (startup && startup.userId) {
+        await createNotification(
+          startup.userId._id,
+          "New Application Received",
+          `A developer has applied for your project "${startup.startuptitle}".`,
+          "info"
+        );
+      }
+    } catch (err) {
+      console.error("Failed to notify founder of new application", err);
+    }
   } catch (error) {
     console.error("Create application error:", error);
 
@@ -69,7 +85,7 @@ const getReceivedPitches = async (req, res) => {
       startupId: { $in: startupIds }
     })
       .populate('startupId')
-      .populate('applicantId', 'name firstname lastname email');
+      .populate('applicantId', 'name firstname lastname email skills languages resume');
 
     res.json(applications);
   } catch (error) {
@@ -106,6 +122,18 @@ const updateApplicationStatus = async (req, res) => {
     }
 
     res.json(application);
+
+    // Notify Coder
+    try {
+      await createNotification(
+        application.applicantId,
+        `Application ${status}`,
+        `Your application for the project "${startup.startuptitle}" was ${status.toLowerCase()}.`,
+        status === 'Accepted' ? 'success' : 'error'
+      );
+    } catch (err) {
+      console.error("Failed to notify coder of application status", err);
+    }
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -120,8 +148,26 @@ const deleteApplication = async (req, res) => {
       if (application.applicantId.toString() !== req.user._id.toString()) {
         return res.status(401).json({ message: 'User not authorized' });
       }
+      const applicantId = application.applicantId;
+      const startupId = application.startupId;
+
       await application.deleteOne();
       res.json({ message: 'Application withdrawn successfully' });
+
+      // Notify Founder
+      try {
+        const startup = await Ideaform.findById(startupId);
+        if (startup) {
+          await createNotification(
+            startup.userId,
+            "Application Withdrawn",
+            `A candidate withdrew their application for "${startup.startuptitle}".`,
+            "warning"
+          );
+        }
+      } catch (err) {
+        console.error("Failed to notify founder of withdrawn application", err);
+      }
     } else {
       res.status(404).json({ message: 'Application not found' });
     }
