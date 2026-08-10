@@ -18,8 +18,8 @@ export default function Applications() {
           const mapped = data.map(p => ({
             id: p._id,
             startupName: p.startupId?.startuptitle || "Startup",
-            founder: p.applicantId?.name || "Candidate",
-            pitchText: p.pitchText,
+            founder: currentUser?.role === 'Founder' ? p.applicantId?.name : (p.startupId?.userId?.name || p.startupId?.userId?.firstname || "Founder"),
+            pitchText: currentUser?.role === 'Founder' ? p.pitchText : (p.startupId?.description ? (p.startupId.description.length > 50 ? p.startupId.description.substring(0, 50) + '...' : p.startupId.description) : p.pitchText),
             status: p.status,
             time: new Date(p.createdAt).toLocaleDateString(),
             color: p.status === 'Accepted' ? 'success' : p.status === 'Rejected' ? 'error' : 'warning'
@@ -115,9 +115,9 @@ export default function Applications() {
         <Table>
           <TableHead>
             <TableRow sx={{ borderBottom: '1px solid', borderColor: 'divider' }}>
-              <TableCell sx={{ fontWeight: 'bold', color: 'text.secondary' }}>Startup</TableCell>
-              <TableCell sx={{ fontWeight: 'bold', color: 'text.secondary' }}>{isFounder ? "Applicant" : "Founder"}</TableCell>
-              <TableCell sx={{ fontWeight: 'bold', color: 'text.secondary' }}>Cover Letter</TableCell>
+              <TableCell sx={{ fontWeight: 'bold', color: 'text.secondary' }}>Startup Name</TableCell>
+              <TableCell sx={{ fontWeight: 'bold', color: 'text.secondary' }}>{isFounder ? "Applicant" : "Founder Name"}</TableCell>
+              <TableCell sx={{ fontWeight: 'bold', color: 'text.secondary' }}>{isFounder ? "Cover Letter" : "Description"}</TableCell>
               <TableCell sx={{ fontWeight: 'bold', color: 'text.secondary' }}>Status</TableCell>
               <TableCell align="right" sx={{ fontWeight: 'bold', color: 'text.secondary' }}>Actions</TableCell>
             </TableRow>
@@ -186,9 +186,11 @@ export default function Applications() {
                         <IconButton size="small" sx={{ color: 'text.secondary' }}>
                           <ViewIcon fontSize="small" />
                         </IconButton>
-                        <IconButton size="small" color="error" onClick={() => handleOpenDeleteDialog(pitch.id)}>
-                          <DeleteIcon fontSize="small" />
-                        </IconButton>
+                        {pitch.status !== 'Accepted' && (
+                          <IconButton size="small" color="error" onClick={() => handleOpenDeleteDialog(pitch.id)}>
+                            <DeleteIcon fontSize="small" />
+                          </IconButton>
+                        )}
                       </Box>
                     )}
                   </TableCell>

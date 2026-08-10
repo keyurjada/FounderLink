@@ -13,7 +13,7 @@ export default function Dashboard() {
     { id: 'matches', title: 'Best Matches', value: '0', trend: '0 startup opportunities', color: '#10b981' },
     { id: 'applications', title: 'Active Pitches', value: '0', trend: '0 pending response', color: '#f59e0b' },
     { id: 'workspaces', title: 'Workspaces Active', value: '0', trend: '0 active', color: '#a855f7' },
-    { id: 'interviews', title: 'Interviews Booked', value: '0', trend: 'No upcoming interviews', color: '#f43f5e' }
+    { id: 'role', title: 'Tech Stack Added', value: '0', trend: 'Listed in profile', color: '#ec4899' }
   ]);
 
   // Intercept browser back/forward buttons and keyboard left/right arrow keys
@@ -81,11 +81,11 @@ export default function Dashboard() {
             color: '#a855f7'
           },
           {
-            id: 'interviews',
-            title: 'Interviews Booked',
-            value: savedInterviews.toString(),
-            trend: savedInterviews > 0 ? `${savedInterviews} upcoming` : 'No upcoming interviews',
-            color: '#f43f5e'
+            id: 'role',
+            title: 'Tech Stack Added',
+            value: (currentUser.skills?.length || 0).toString(),
+            trend: 'Listed in profile',
+            color: '#ec4899'
           }
         ]);
       } catch (error) {
@@ -127,7 +127,7 @@ export default function Dashboard() {
         <Grid item xs={12} lg={8}>
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}>
             <Typography variant="h6" fontWeight="bold" sx={{ color: 'text.primary' }}>
-              Co-Founder Search Pipeline
+              Co-Founder Latest Posts
             </Typography>
             <RecentStartups />
           </Box>

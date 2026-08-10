@@ -40,6 +40,10 @@ const userSchema = new mongoose.Schema(
     languages: {
       type: [String],
       default: []
+    },
+    resume: {
+      type: String,
+      default: ''
     }
   },
   {

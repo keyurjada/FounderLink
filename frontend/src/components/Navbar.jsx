@@ -183,7 +183,11 @@ const Navbar = ({ onDrawerToggle }) => {
 
   const handleSearchKeyDown = (e) => {
     if (e.key === 'Enter' && searchQuery.trim()) {
-      navigate(`/match?search=${encodeURIComponent(searchQuery.trim())}`);
+      if (currentUser?.role === 'Founder') {
+        navigate(`/match?search=${encodeURIComponent(searchQuery.trim())}`);
+      } else {
+        navigate(`/coder/Startuplist?search=${encodeURIComponent(searchQuery.trim())}`);
+      }
     }
   };
 
@@ -282,7 +286,7 @@ const Navbar = ({ onDrawerToggle }) => {
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
           
           {/* Notifications button */}
-          <IconButton 
+          {/* <IconButton 
             size="large" 
             aria-label="show current notifications" 
             color="inherit" 
@@ -300,7 +304,7 @@ const Navbar = ({ onDrawerToggle }) => {
             <Badge badgeContent={unreadCount} color="error">
               <NotificationsIcon fontSize="small" />
             </Badge>
-          </IconButton>
+          </IconButton> */}
 
           <Divider orientation="vertical" flexItem sx={{ height: 24, alignSelf: 'center', mx: 0.5 }} />
 
@@ -450,10 +454,10 @@ const Navbar = ({ onDrawerToggle }) => {
   <PersonIcon fontSize="small" color="action" />
   <Typography variant="body2">My Profile</Typography>
 </MenuItem>
-          <MenuItem onClick={handleProfileMenuClose} sx={{ py: 1, gap: 1.5 }}>
+          {/* <MenuItem onClick={handleProfileMenuClose} sx={{ py: 1, gap: 1.5 }}>
             <SettingsIcon fontSize="small" color="action" />
             <Typography variant="body2">Settings</Typography>
-          </MenuItem>
+          </MenuItem> */}
           <Divider />
           <MenuItem onClick={handleSignOutClick} sx={{ py: 1, gap: 1.5, color: 'error.main' }}>
             <LogoutIcon fontSize="small" color="inherit" />

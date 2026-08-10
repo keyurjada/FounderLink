@@ -48,7 +48,10 @@ const createApplication = async (req, res) => {
 const getApplications = async (req, res) => {
   try {
     const applications = await Application.find({ applicantId: req.user._id })
-      .populate('startupId')
+      .populate({
+        path: 'startupId',
+        populate: { path: 'userId', select: 'name firstname lastname' }
+      })
       .populate('applicantId', 'name email');
     res.json(applications);
   } catch (error) {
@@ -136,7 +139,10 @@ const getAcceptedApplications = async (req, res) => {
       applicantId: req.user._id,
       status: 'Accepted'
     })
-      .populate('startupId')
+      .populate({
+        path: 'startupId',
+        populate: { path: 'userId', select: 'name firstname lastname' }
+      })
       .populate('applicantId', 'name firstname lastname email');
 
     res.json(applications);

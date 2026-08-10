@@ -55,6 +55,7 @@ const registerUser = async (req, res) => {
         profilePicture: user.profilePicture,
         skills: user.skills || [],
         languages: user.languages || [],
+        resume: user.resume || '',
         token: generateToken(user._id)
       });
     } else {
@@ -83,6 +84,7 @@ const authUser = async (req, res) => {
         profilePicture: user.profilePicture,
         skills: user.skills || [],
         languages: user.languages || [],
+        resume: user.resume || '',
         token: generateToken(user._id)
       });
     } else {
@@ -105,7 +107,8 @@ const getUserProfile = async (req, res) => {
       title: req.user.title || '',
       profilePicture: req.user.profilePicture,
       skills: req.user.skills || [],
-      languages: req.user.languages || []
+      languages: req.user.languages || [],
+      resume: req.user.resume || ''
     });
   } else {
     res.status(404).json({ message: 'User not found' });
@@ -151,6 +154,7 @@ const updateUserProfile = async (req, res) => {
       profilePicture: updatedUser.profilePicture,
       skills: updatedUser.skills || [],
       languages: updatedUser.languages || [],
+      resume: updatedUser.resume || '',
       token: generateToken(updatedUser._id)
     });
   } else {
@@ -167,4 +171,23 @@ const getTalents = async (req, res) => {
   }
 };
 
-export { registerUser, authUser, getUserProfile, updateUserProfile, getTalents };
+const uploadUserResume = async (req, res) => {
+  try {
+    const user = await User.findById(req.user._id);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+    
+    if (req.file) {
+      user.resume = req.file.path;
+      await user.save();
+      return res.json({ resume: user.resume, message: 'Resume uploaded successfully' });
+    } else {
+      return res.status(400).json({ message: 'No file provided' });
+    }
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+export { registerUser, authUser, getUserProfile, updateUserProfile, getTalents, uploadUserResume };

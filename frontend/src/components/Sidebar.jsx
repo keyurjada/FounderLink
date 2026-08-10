@@ -71,7 +71,7 @@ const Sidebar = ({ mobileOpen, onDrawerToggle }) => {
   }
  menuItems.push(
     { text: 'Team Workspace', icon: <GroupWorkIcon />, path: '/workspaces' },
-    { text: 'Settings', icon: <SettingsIcon />, path: '/settings' }
+    // { text: 'Settings', icon: <SettingsIcon />, path: '/settings' }
   );
   
 

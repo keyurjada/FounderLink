@@ -32,8 +32,10 @@ export default function Match() {
   const [startups, setStartups] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedStartup, setSelectedStartup] = useState(null);
+  const [myApplications, setMyApplications] = useState([]);
   const [resumeFile, setResumeFile] = useState(null);
   const [snackbarOpen, setSnackbarOpen] = useState(false);
+  const [selectedTechFilters, setSelectedTechFilters] = useState([]);
   // Load startup ideas for CODER/TALENT
   useEffect(() => {
     const loadStartups = async () => {
@@ -41,6 +43,9 @@ export default function Match() {
         setLoading(true);
 
         const data = await fetchApi("/idea");
+        const apps = await fetchApi("/applications").catch(() => []);
+
+        setMyApplications(Array.isArray(apps) ? apps : []);
 
         console.log("Startup ideas:", data);
 
@@ -88,20 +93,30 @@ export default function Match() {
 
   const filteredStartups = startups.filter((startup) => {
     const search = searchTerm.toLowerCase().trim();
+    const userSkills = new Set((currentUser?.skills || []).map(s => s.toLowerCase()));
 
-    if (!search) return true;
+    let matchesSearch = true;
+    if (search) {
+      const projectName = (startup.startuptitle || "").toLowerCase();
+      const category = (startup.category || "").toLowerCase();
+      const description = (startup.description || "").toLowerCase();
+      const skills = (startup.skillsRequired || []).join(" ").toLowerCase();
 
-    const projectName = (startup.startuptitle || "").toLowerCase();
-    const category = (startup.category || "").toLowerCase();
-    const description = (startup.description || "").toLowerCase();
-    const skills = (startup.skillsRequired || []).join(" ").toLowerCase();
+      matchesSearch = (
+        projectName.includes(search) ||
+        category.includes(search) ||
+        description.includes(search) ||
+        skills.includes(search)
+      );
+    }
 
-    return (
-      projectName.includes(search) ||
-      category.includes(search) ||
-      description.includes(search) ||
-      skills.includes(search)
-    );
+    let matchesTech = true;
+    if (selectedTechFilters.length > 0) {
+      const startupSkills = (startup.skillsRequired || []).map(s => s.toLowerCase());
+      matchesTech = selectedTechFilters.some(tech => startupSkills.includes(tech.toLowerCase()));
+    }
+
+    return matchesSearch && matchesTech;
   });
 
   // Open popup
@@ -132,6 +147,9 @@ export default function Match() {
       method: "POST",
       body: formData,
     });
+
+    const apps = await fetchApi("/applications").catch(() => []);
+    setMyApplications(Array.isArray(apps) ? apps : []);
 
     setSnackbarOpen(true);
     handleCloseApply();
@@ -204,20 +222,35 @@ export default function Match() {
           }}
         />
 
-        <Button
-          variant="outlined"
-          startIcon={<FilterIcon />}
-          sx={{
-            borderRadius: 3,
-            px: 3,
-            textTransform: "none",
-            borderColor: "divider",
-            color: "text.secondary",
-          }}
-        >
-          Filters
-        </Button>
       </Box>
+
+      {/* Tech Stack Filter Chips */}
+      {currentUser?.skills && currentUser.skills.length > 0 && (
+        <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+          <Typography variant="body2" color="text.secondary" sx={{ alignSelf: 'center', mr: 1, fontWeight: 'bold' }}>
+            Filter by your skills:
+          </Typography>
+          {currentUser.skills.map(skill => {
+            const isSelected = selectedTechFilters.includes(skill);
+            return (
+              <Chip
+                key={skill}
+                label={skill}
+                onClick={() => {
+                  if (isSelected) {
+                    setSelectedTechFilters(selectedTechFilters.filter(s => s !== skill));
+                  } else {
+                    setSelectedTechFilters([...selectedTechFilters, skill]);
+                  }
+                }}
+                color={isSelected ? "primary" : "default"}
+                variant={isSelected ? "filled" : "outlined"}
+                sx={{ borderRadius: 2, fontWeight: isSelected ? 'bold' : 'normal', cursor: 'pointer' }}
+              />
+            );
+          })}
+        </Box>
+      )}
 
       {/* Loading */}
       {loading && (
@@ -362,21 +395,47 @@ export default function Match() {
                     </Typography>
                   
 
-                  {/* Apply button */}
-                  <Button
-                    variant="contained"
-                    fullWidth
-                    startIcon={<SendIcon />}
-                    sx={{
-                      borderRadius: 2,
-                      py: 1,
-                      textTransform: "none",
-                      fontWeight: "bold",
-                    }}
-                    onClick={() => handleOpenApply(startup)}
-                  >
-                    Apply to Project
-                  </Button>
+                  {/* Application Status Logic */}
+                  {(() => {
+                    const existingApp = myApplications.find(app => (app.startupId?._id || app.startupId) === startup._id);
+                    if (existingApp) {
+                      if (existingApp.status === 'Accepted') {
+                        return (
+                          <Button variant="contained" fullWidth color="success" disabled sx={{ borderRadius: 2, py: 1, fontWeight: 'bold', textTransform: 'none' }}>
+                            Accepted and Working
+                          </Button>
+                        );
+                      }
+                      if (existingApp.status === 'Rejected') {
+                        return (
+                          <Button variant="contained" fullWidth color="error" disabled sx={{ borderRadius: 2, py: 1, fontWeight: 'bold', textTransform: 'none' }}>
+                            Application Rejected
+                          </Button>
+                        );
+                      }
+                      return (
+                        <Button variant="contained" fullWidth disabled sx={{ borderRadius: 2, py: 1, fontWeight: 'bold', textTransform: 'none' }}>
+                          Application Sent
+                        </Button>
+                      );
+                    }
+                    return (
+                      <Button
+                        variant="contained"
+                        fullWidth
+                        startIcon={<SendIcon />}
+                        sx={{
+                          borderRadius: 2,
+                          py: 1,
+                          textTransform: "none",
+                          fontWeight: "bold",
+                        }}
+                        onClick={() => handleOpenApply(startup)}
+                      >
+                        Apply to Project
+                      </Button>
+                    );
+                  })()}
                 </CardContent>
               </Card>
             </Grid>

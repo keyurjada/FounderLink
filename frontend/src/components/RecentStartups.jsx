@@ -31,6 +31,7 @@ const RecentStartups = () => {
   const [selectedStartup, setSelectedStartup] = useState(null);
   const [resumeFile, setResumeFile] = useState(null);
   const [snackbarOpen, setSnackbarOpen] = useState(false);
+  const [myApplications, setMyApplications] = useState([]);
 
  useEffect(() => {
   const loadStartups = async () => {
@@ -40,11 +41,12 @@ const RecentStartups = () => {
 
       // Get applications submitted by this coder
       const applicationData = await fetchApi('/applications');
+      setMyApplications(Array.isArray(applicationData) ? applicationData : []);
 
-      // Get startup IDs where founder has ACCEPTED this coder
-      const acceptedStartupIds = new Set(
+      // Get startup IDs where founder has ACCEPTED or REJECTED this coder
+      const hiddenStartupIds = new Set(
         (Array.isArray(applicationData) ? applicationData : [])
-          .filter((application) => application.status === 'Accepted')
+          .filter((application) => application.status === 'Accepted' || application.status === 'Rejected')
           .map((application) => {
             // startupId is populated by your backend
             if (
@@ -58,12 +60,12 @@ const RecentStartups = () => {
           })
       );
 
-      console.log("Accepted startup IDs:", acceptedStartupIds);
+      console.log("Hidden startup IDs:", hiddenStartupIds);
 
-      // Remove accepted projects from Co-Founder Search Pipeline
+      // Remove accepted/rejected projects from Co-Founder Search Pipeline
       const availableStartups = (
         Array.isArray(startupData) ? startupData : []
-      ).filter((startup) => !acceptedStartupIds.has(startup._id));
+      ).filter((startup) => !hiddenStartupIds.has(startup._id));
 
       const mapped = availableStartups.map(item => ({
         id: item._id,
@@ -73,7 +75,7 @@ const RecentStartups = () => {
         description: item.description,
         location: "Remote",
         stage: "Seed",
-        skillsRequired: ["React", "Node.js"],
+        skillsRequired: item.skillsRequired || [],
         avatarColor: "#4f46e5",
         founder: "Founder"
       }));
@@ -115,6 +117,9 @@ const RecentStartups = () => {
         method: 'POST',
         body: formData
       });
+
+      const apps = await fetchApi('/applications').catch(() => []);
+      setMyApplications(Array.isArray(apps) ? apps : []);
 
       setSnackbarOpen(true);
       handleCloseApply();
@@ -224,24 +229,36 @@ const RecentStartups = () => {
 
                   {/* Right Column: Actions */}
                   <Grid item xs={12} md={4} sx={{ display: 'flex', justifyContent: { xs: 'flex-start', md: 'flex-end' }, alignSelf: 'center', mt: { xs: 2, md: 0 } }}>
-                    <Button 
-                      variant="contained" 
-                      onClick={() => handleOpenApply(startup)}
-                      endIcon={<ArrowIcon />}
-                      sx={{ 
-                        borderRadius: 2, 
-                        px: 3, 
-                        py: 1, 
-                        fontWeight: 'bold', 
-                        textTransform: 'none',
-                        boxShadow: 'none',
-                        '&:hover': {
-                          boxShadow: '0 4px 12px rgba(79, 70, 229, 0.25)'
-                        }
-                      }}
-                    >
-                      Apply to Match
-                    </Button>
+                    {(() => {
+                      const existingApp = myApplications.find(app => (app.startupId?._id || app.startupId) === startup.id);
+                      if (existingApp) {
+                        return (
+                          <Button variant="contained" disabled sx={{ borderRadius: 2, px: 3, py: 1, fontWeight: 'bold', textTransform: 'none' }}>
+                            Application Sent
+                          </Button>
+                        );
+                      }
+                      return (
+                        <Button 
+                          variant="contained" 
+                          onClick={() => handleOpenApply(startup)}
+                          endIcon={<ArrowIcon />}
+                          sx={{ 
+                            borderRadius: 2, 
+                            px: 3, 
+                            py: 1, 
+                            fontWeight: 'bold', 
+                            textTransform: 'none',
+                            boxShadow: 'none',
+                            '&:hover': {
+                              boxShadow: '0 4px 12px rgba(79, 70, 229, 0.25)'
+                            }
+                          }}
+                        >
+                          Apply to Match
+                        </Button>
+                      );
+                    })()}
                   </Grid>
                 </Grid>
               </CardContent>

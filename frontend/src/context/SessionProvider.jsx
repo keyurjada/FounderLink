@@ -112,7 +112,8 @@ export const SessionProvider = ({ children }) => {
           const normalizedUser = {
             ...user,
             skills: normalizeList(user.skills),
-            languages: normalizeList(user.languages)
+            languages: normalizeList(user.languages),
+            resume: user.resume || ''
           };
 
           setCurrentUser(normalizedUser);
@@ -148,7 +149,8 @@ export const SessionProvider = ({ children }) => {
         title: data.title || (data.role === 'Founder' ? 'Founder' : 'Software Engineer'),
         profilePicture: data.profilePicture || '',
         skills: normalizeList(data.skills),
-        languages: normalizeList(data.languages)
+        languages: normalizeList(data.languages),
+        resume: data.resume || ''
       };
 
       localStorage.setItem('auth_token', data.token);
@@ -176,7 +178,8 @@ export const SessionProvider = ({ children }) => {
         profilePicture: data.profilePicture || '',
         title: data.title || (data.role === 'Founder' ? 'Founder' : 'Developer / Designer'),
         skills: normalizeList(data.skills),
-        languages: normalizeList(data.languages)
+        languages: normalizeList(data.languages),
+        resume: data.resume || ''
       };
 
       localStorage.setItem('auth_token', data.token);

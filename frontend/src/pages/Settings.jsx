@@ -10,6 +10,10 @@ export default function Settings() {
   const [phone, setPhone] = useState(currentUser?.phone || '');
   const [title, setTitle] = useState(currentUser?.title || '');
   const [profilePic, setProfilePic] = useState(currentUser?.profilePicture || '');
+  const [skills, setSkills] = useState((currentUser?.skills || []).join(', '));
+  const [languages, setLanguages] = useState((currentUser?.languages || []).join(', '));
+  const [resumeFile, setResumeFile] = useState(null);
+  const [resumeUrl, setResumeUrl] = useState(currentUser?.resume || '');
   
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
@@ -45,9 +49,29 @@ export default function Settings() {
           name,
           phone,
           title,
-          profilePicture: profilePic
+          profilePicture: profilePic,
+          skills,
+          languages
         })
       });
+
+      if (resumeFile) {
+        const formData = new FormData();
+        formData.append('resume', resumeFile);
+        try {
+          const resumeRes = await fetchApi('/auth/resume', {
+            method: 'PUT',
+            body: formData
+          });
+          if (resumeRes.resume) {
+            updatedUser.resume = resumeRes.resume;
+            setResumeUrl(resumeRes.resume);
+            setResumeFile(null);
+          }
+        } catch (e) {
+          setError('Profile saved, but failed to upload resume.');
+        }
+      }
 
       if (updatedUser) {
         // Also update context so Navbar picks it up
@@ -188,6 +212,92 @@ export default function Settings() {
                   sx={{ '& .MuiFilledInput-root': { borderRadius: 2, backgroundColor: 'action.hover' } }}
                 />
               </Grid>
+
+              {currentUser?.role === 'Talent' && (
+                <>
+                  <Grid item xs={12} sm={6}>
+                    <TextField
+                      fullWidth
+                      label="Technologies (Skills)"
+                      variant="filled"
+                      value={skills}
+                      onChange={(e) => setSkills(e.target.value)}
+                      placeholder="React, Node.js, Python"
+                      sx={{ '& .MuiFilledInput-root': { borderRadius: 2 } }}
+                    />
+                  </Grid>
+
+                  <Grid item xs={12} sm={6}>
+                    <TextField
+                      fullWidth
+                      label="Languages"
+                      variant="filled"
+                      value={languages}
+                      onChange={(e) => setLanguages(e.target.value)}
+                      placeholder="English, Spanish"
+                      sx={{ '& .MuiFilledInput-root': { borderRadius: 2 } }}
+                    />
+                  </Grid>
+
+                  <Grid item xs={12}>
+                    <Box
+                      sx={{
+                        border: '2px dashed',
+                        borderColor: 'divider',
+                        borderRadius: 3,
+                        p: 3,
+                        textAlign: 'center',
+                        cursor: 'pointer',
+                        '&:hover': {
+                          borderColor: 'primary.main',
+                          backgroundColor: 'action.hover',
+                        },
+                      }}
+                      onClick={() => document.getElementById('settings-resume-upload').click()}
+                    >
+                      <Typography variant="body1" fontWeight="bold" sx={{ mb: 1 }}>
+                        {resumeFile ? resumeFile.name : (resumeUrl ? 'Update your uploaded Resume (PDF)' : 'Upload your Resume (PDF)')}
+                      </Typography>
+                      <Typography variant="body2" color="text.secondary">
+                        Click here to select a PDF file
+                      </Typography>
+                      <input
+                        id="settings-resume-upload"
+                        type="file"
+                        accept="application/pdf"
+                        hidden
+                        onChange={(e) => {
+                          const file = e.target.files[0];
+                          if (file) {
+                            setResumeFile(file);
+                          }
+                        }}
+                      />
+                      {resumeFile && (
+                        <Typography variant="caption" color="success.main" sx={{ display: 'block', mt: 2, fontWeight: 'bold' }}>
+                          New PDF selected ✓
+                        </Typography>
+                      )}
+                      {!resumeFile && resumeUrl && (
+                        <Typography variant="caption" color="primary.main" sx={{ display: 'block', mt: 2, fontWeight: 'bold' }}>
+                          Current Resume Active ✓
+                        </Typography>
+                      )}
+                    </Box>
+                    {!resumeFile && resumeUrl && (
+                      <Button 
+                        variant="outlined" 
+                        color="primary" 
+                        fullWidth
+                        sx={{ mt: 2, borderRadius: 2, fontWeight: 'bold', textTransform: 'none' }}
+                        onClick={() => window.open(`http://localhost:5005/${resumeUrl.replace(/\\/g, '/')}`, '_blank')}
+                      >
+                        View Current Resume
+                      </Button>
+                    )}
+                  </Grid>
+                </>
+              )}
 
               <Grid item xs={12} sx={{ mt: 2, display: 'flex', justifyContent: 'flex-end' }}>
                 <Button 
