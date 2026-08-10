@@ -5,18 +5,12 @@ import Notification from '../models/Notification.js';
 
 // Create a new application/pitch
 const createApplication = async (req, res) => {
-  const { startupId } = req.body;
+  const { startupId, pitchText } = req.body;
 
   try {
     if (!startupId) {
       return res.status(400).json({
         message: "Startup is required",
-      });
-    }
-
-    if (!req.file) {
-      return res.status(400).json({
-        message: "Resume PDF is required",
       });
     }
 
@@ -34,8 +28,8 @@ const createApplication = async (req, res) => {
     const application = await Application.create({
       startupId,
       applicantId: req.user._id,
-      pitchText: "",
-      resume: req.file.path,
+      pitchText: pitchText || "",
+      resume: req.file ? req.file.path : "",
       status: "Pending",
     });
 

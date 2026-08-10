@@ -52,9 +52,7 @@ export default function Applications() {
       }
 
       const updated = pitches.filter(p => p.id !== pitchToDelete);
-      localStorage.setItem('active_pitches', JSON.stringify(updated));
       setPitches(updated);
-      window.dispatchEvent(new Event('storage'));
     }
     setDeleteDialogOpen(false);
     setPitchToDelete(null);

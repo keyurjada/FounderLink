@@ -8,6 +8,7 @@ export default function Applications() {
   const [pitches, setPitches] = useState([]);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [pitchToDelete, setPitchToDelete] = useState(null);
+  const [statusDialog, setStatusDialog] = useState({ open: false, id: null, status: null });
 
   useEffect(() => {
     const loadPitches = async () => {
@@ -20,6 +21,7 @@ export default function Applications() {
             startupName: p.startupId?.startuptitle || "Startup",
             founder: p.applicantId?.name || "Candidate",
             pitchText: p.pitchText,
+            resume: p.resume ? p.resume.replace(/\\/g, '/') : null,
             status: p.status,
             time: new Date(p.createdAt).toLocaleDateString(),
             color: p.status === 'Accepted' ? 'success' : p.status === 'Rejected' ? 'error' : 'warning'
@@ -52,9 +54,7 @@ export default function Applications() {
       }
 
       const updated = pitches.filter(p => p.id !== pitchToDelete);
-      localStorage.setItem('active_pitches', JSON.stringify(updated));
       setPitches(updated);
-      window.dispatchEvent(new Event('storage'));
     }
     setDeleteDialogOpen(false);
     setPitchToDelete(null);
@@ -85,6 +85,17 @@ export default function Applications() {
     } catch (e) {
       console.error(e);
     }
+  };
+
+  const confirmStatusUpdate = (id, newStatus) => {
+    setStatusDialog({ open: true, id, status: newStatus });
+  };
+
+  const handleConfirmStatus = () => {
+    if (statusDialog.id && statusDialog.status) {
+      handleUpdateStatus(statusDialog.id, statusDialog.status);
+    }
+    setStatusDialog({ open: false, id: null, status: null });
   };
 
   const isFounder = currentUser?.role === 'Founder';
@@ -119,7 +130,7 @@ export default function Applications() {
             <TableRow sx={{ borderBottom: '1px solid', borderColor: 'divider' }}>
               <TableCell sx={{ fontWeight: 'bold', color: 'text.secondary' }}>Startup</TableCell>
               <TableCell sx={{ fontWeight: 'bold', color: 'text.secondary' }}>{isFounder ? "Applicant" : "Founder"}</TableCell>
-              <TableCell sx={{ fontWeight: 'bold', color: 'text.secondary' }}>Cover Letter</TableCell>
+              <TableCell sx={{ fontWeight: 'bold', color: 'text.secondary' }}>Resume & Pitch</TableCell>
               <TableCell sx={{ fontWeight: 'bold', color: 'text.secondary' }}>Status</TableCell>
               <TableCell align="right" sx={{ fontWeight: 'bold', color: 'text.secondary' }}>Actions</TableCell>
             </TableRow>
@@ -149,7 +160,19 @@ export default function Applications() {
                     {pitch.founder}
                   </TableCell>
                   <TableCell sx={{ maxWidth: '300px', color: 'text.secondary', fontSize: '13px' }}>
-                    {pitch.pitchText}
+                    <Typography variant="body2" sx={{ mb: 1, whiteSpace: 'pre-wrap' }}>
+                      {pitch.pitchText}
+                    </Typography>
+                    {pitch.resume && (
+                      <Button 
+                        size="small" 
+                        variant="text" 
+                        onClick={() => window.open(`http://localhost:5005/${pitch.resume}`, '_blank')}
+                        sx={{ textTransform: 'none', fontWeight: 'bold', p: 0 }}
+                      >
+                        View Resume PDF
+                      </Button>
+                    )}
                   </TableCell>
                   <TableCell>
                     <Chip 
@@ -162,26 +185,30 @@ export default function Applications() {
                   <TableCell align="right">
                     {isFounder ? (
                       <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 1 }}>
-                        <Button 
-                          variant="contained" 
-                          color="success" 
-                          size="small" 
-                          onClick={() => handleUpdateStatus(pitch.id, 'Accepted')}
-                          disabled={pitch.status === 'Accepted'}
-                          sx={{ textTransform: 'none', borderRadius: 2 }}
-                        >
-                          Accept
-                        </Button>
-                        <Button 
-                          variant="outlined" 
-                          color="error" 
-                          size="small" 
-                          onClick={() => handleUpdateStatus(pitch.id, 'Rejected')}
-                          disabled={pitch.status === 'Rejected'}
-                          sx={{ textTransform: 'none', borderRadius: 2 }}
-                        >
-                          Reject
-                        </Button>
+                        {pitch.status !== 'Rejected' && (
+                          <Button 
+                            variant="contained" 
+                            color="success" 
+                            size="small" 
+                            onClick={() => confirmStatusUpdate(pitch.id, 'Accepted')}
+                            disabled={pitch.status === 'Accepted'}
+                            sx={{ textTransform: 'none', borderRadius: 2 }}
+                          >
+                            {pitch.status === 'Accepted' ? 'Accepted' : 'Accept'}
+                          </Button>
+                        )}
+                        {pitch.status !== 'Accepted' && (
+                          <Button 
+                            variant="outlined" 
+                            color="error" 
+                            size="small" 
+                            onClick={() => confirmStatusUpdate(pitch.id, 'Rejected')}
+                            disabled={pitch.status === 'Rejected'}
+                            sx={{ textTransform: 'none', borderRadius: 2 }}
+                          >
+                            {pitch.status === 'Rejected' ? 'Rejected' : 'Reject'}
+                          </Button>
+                        )}
                       </Box>
                     ) : (
                       <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 1 }}>
@@ -228,6 +255,45 @@ export default function Applications() {
           </Button>
           <Button onClick={handleConfirmDelete} variant="contained" color="error" sx={{ borderRadius: 2, textTransform: 'none', backgroundColor: '#f43f5e' }}>
             Delete
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Accept/Reject Status Confirmation Dialog */}
+      <Dialog
+        open={statusDialog.open}
+        onClose={() => setStatusDialog({ open: false, id: null, status: null })}
+        PaperProps={{
+          sx: {
+            borderRadius: 3,
+            p: 1.5,
+            backgroundColor: 'background.paper',
+            border: '1px solid',
+            borderColor: 'divider',
+            backgroundImage: 'none'
+          }
+        }}
+      >
+        <DialogTitle sx={{ fontWeight: 'bold' }}>
+          Confirm {statusDialog.status === 'Accepted' ? 'Acceptance' : 'Rejection'}
+        </DialogTitle>
+        <DialogContent>
+          <DialogContentText sx={{ color: 'text.secondary', fontSize: '14px' }}>
+            Are you sure you want to {statusDialog.status === 'Accepted' ? 'accept' : 'reject'} this candidate's application?
+            {statusDialog.status === 'Accepted' && ' A workspace will be created for your collaboration.'}
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions sx={{ px: 3, pb: 2, gap: 1.5 }}>
+          <Button onClick={() => setStatusDialog({ open: false, id: null, status: null })} variant="outlined" sx={{ borderRadius: 2, textTransform: 'none' }}>
+            Cancel
+          </Button>
+          <Button 
+            onClick={handleConfirmStatus} 
+            variant="contained" 
+            color={statusDialog.status === 'Accepted' ? 'success' : 'error'} 
+            sx={{ borderRadius: 2, textTransform: 'none' }}
+          >
+            Confirm {statusDialog.status}
           </Button>
         </DialogActions>
       </Dialog>

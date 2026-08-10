@@ -120,6 +120,7 @@ const Navbar = ({ onDrawerToggle }) => {
   const { currentUser, logoutUser, fetchApi } = useContext(SessionContext);
   const navigate = useNavigate();
   const [notifications, setNotifications] = useState([]);
+  const [searchQuery, setSearchQuery] = useState("");
 
   const handleProfileMenuOpen = (event) => setAnchorEl(event.currentTarget);
   const handleProfileMenuClose = () => setAnchorEl(null);
@@ -180,6 +181,12 @@ const Navbar = ({ onDrawerToggle }) => {
     setNotifications(notifications.map(n => ({ ...n, isRead: true })));
   };
 
+  const handleSearchKeyDown = (e) => {
+    if (e.key === 'Enter' && searchQuery.trim()) {
+      navigate(`/match?search=${encodeURIComponent(searchQuery.trim())}`);
+    }
+  };
+
   const unreadCount = notifications.filter(n => !n.isRead).length;
 
   return (
@@ -225,6 +232,9 @@ const Navbar = ({ onDrawerToggle }) => {
             <StyledInputBase
               placeholder={currentUser?.role === 'Founder' ? "Search Developers, Talents..." : "Search Startup Projects..."}
               inputProps={{ 'aria-label': 'search' }}
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              onKeyDown={handleSearchKeyDown}
             />
             {/* Keyboard shortcut icon indicator */}
             <Box 

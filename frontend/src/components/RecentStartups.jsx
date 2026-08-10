@@ -116,38 +116,10 @@ const RecentStartups = () => {
         body: formData
       });
 
-      const activePitches = JSON.parse(localStorage.getItem('active_pitches') || '[]');
-      const newPitch = {
-        id: Date.now(),
-        startupName: selectedStartup.name,
-        founder: selectedStartup.founder,
-        pitchText: 'Resume uploaded for review',
-        status: 'Under Review',
-        time: 'Just now',
-        color: 'warning'
-      };
-      activePitches.push(newPitch);
-      localStorage.setItem('active_pitches', JSON.stringify(activePitches));
-
-      window.dispatchEvent(new Event('storage'));
       setSnackbarOpen(true);
       handleCloseApply();
     } catch (e) {
-      console.warn('Backend submit failed, using localStorage fallback:', e);
-
-      const activePitches = JSON.parse(localStorage.getItem('active_pitches') || '[]');
-      const newPitch = {
-        id: Date.now(),
-        startupName: selectedStartup.name,
-        founder: selectedStartup.founder,
-        pitchText: 'Resume uploaded for review',
-        status: 'Under Review',
-        time: 'Just now',
-        color: 'warning'
-      };
-      activePitches.push(newPitch);
-      localStorage.setItem('active_pitches', JSON.stringify(activePitches));
-      window.dispatchEvent(new Event('storage'));
+      console.warn('Backend submit failed:', e);
       setSnackbarOpen(true);
       handleCloseApply();
     } finally {

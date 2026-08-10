@@ -1,18 +1,42 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { Box, Typography, Grid, Card, CardContent, Avatar, Chip, Button, TextField, InputAdornment } from '@mui/material';
 import { Search as SearchIcon, FilterList as FilterIcon, Chat as ChatIcon } from '@mui/icons-material';
+import { useLocation } from 'react-router-dom';
 import { SessionContext } from '../context/SessionProvider.jsx';
+
+const TECH_STACKS = ['React', 'Node.js', 'Python', 'MongoDB', 'AWS', 'Docker', 'Next.js', 'Express'];
 
 export default function Match() {
   const { currentUser, fetchApi } = useContext(SessionContext);
-  const [searchTerm, setSearchTerm] = useState('');
+  const location = useLocation();
+  const searchParams = new URLSearchParams(location.search);
+  const initialSearch = searchParams.get('search') || '';
+
+  const [searchTerm, setSearchTerm] = useState(initialSearch);
   const [candidates, setCandidates] = useState([]);
+  const [selectedTechs, setSelectedTechs] = useState([]);
+  const [receivedApps, setReceivedApps] = useState([]);
+
+  useEffect(() => {
+    const q = new URLSearchParams(location.search).get('search');
+    if (q !== null) {
+      setSearchTerm(q);
+    }
+  }, [location.search]);
 
   useEffect(() => {
     if (currentUser?.role === 'Founder') {
       const loadTalents = async () => {
         try {
-          const data = await fetchApi('/auth/talents');
+          const [data, appsData] = await Promise.all([
+            fetchApi('/auth/talents').catch(() => []),
+            fetchApi('/applications/received').catch(() => [])
+          ]);
+
+          if (Array.isArray(appsData)) {
+            setReceivedApps(appsData);
+          }
+
           if (data && data.length > 0) {
             const mapped = data.map(item => ({
               id: item._id,
@@ -21,7 +45,6 @@ export default function Match() {
               skills: item.skills || ["React", "Node.js", "MongoDB"],
               bio: item.bio || "Experienced technical co-founder interested in partnering with early-stage startups.",
               avatar: item.profilePicture || "https://img.icons8.com/color/96/user-male-circle--v1.png",
-              matchScore: 92
             }));
             setCandidates(mapped);
           }
@@ -33,13 +56,53 @@ export default function Match() {
     }
   }, [currentUser, fetchApi]);
 
-  const filtered = candidates.filter(c => 
-    c.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    c.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    c.skills.some(s => s.toLowerCase().includes(searchTerm.toLowerCase()))
-  );
+  const getCandidateStatus = (coderId) => {
+    const app = receivedApps.find(a => (a.applicantId?._id === coderId || a.applicantId === coderId));
+    return app ? app.status : null;
+  };
 
-  
+  const calculateMatchScore = (coderSkills) => {
+    if (selectedTechs.length === 0) return Math.floor(Math.random() * 20) + 75; // Baseline 75-95 if no specific filter
+    
+    const matched = selectedTechs.filter(tech => 
+      coderSkills.some(skill => skill.toLowerCase().includes(tech.toLowerCase()))
+    ).length;
+    
+    if (matched === 0) return 35;
+    return Math.floor((matched / selectedTechs.length) * 100);
+  };
+
+  const toggleTech = (tech) => {
+    setSelectedTechs(prev => 
+      prev.includes(tech) ? prev.filter(t => t !== tech) : [...prev, tech]
+    );
+  };
+
+  // Filter logic
+  let filtered = candidates.filter(c => getCandidateStatus(c.id) !== 'Accepted'); // Hide accepted candidates
+
+  if (searchTerm) {
+    filtered = filtered.filter(c => 
+      c.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      c.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      c.skills.some(s => s.toLowerCase().includes(searchTerm.toLowerCase()))
+    );
+  }
+
+  if (selectedTechs.length > 0) {
+    // Only show coders that have at least one matching selected tech, and sort by match score later
+    filtered = filtered.filter(c => 
+      selectedTechs.some(tech => c.skills.some(s => s.toLowerCase().includes(tech.toLowerCase())))
+    );
+  }
+
+  // Calculate dynamic match scores and sort
+  filtered = filtered.map(c => ({
+    ...c,
+    matchScore: calculateMatchScore(c.skills)
+  })).sort((a, b) => b.matchScore - a.matchScore);
+
+
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
@@ -52,8 +115,7 @@ export default function Match() {
         </Typography>
       </Box>
 
-      {/* Search and Filters */}
-      <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
+      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
         <TextField
           placeholder="Search by name, role, or skills..."
           variant="outlined"
@@ -77,13 +139,22 @@ export default function Match() {
             ),
           }}
         />
-        <Button 
-          variant="outlined" 
-          startIcon={<FilterIcon />}
-          sx={{ borderRadius: 3, px: 3, textTransform: 'none', borderColor: 'divider', color: 'text.secondary' }}
-        >
-          Filters
-        </Button>
+        
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
+          <Typography variant="body2" color="text.secondary" sx={{ fontWeight: 'bold', mr: 1 }}>
+            Tech Filters:
+          </Typography>
+          {TECH_STACKS.map(tech => (
+            <Chip 
+              key={tech}
+              label={tech}
+              onClick={() => toggleTech(tech)}
+              color={selectedTechs.includes(tech) ? "primary" : "default"}
+              variant={selectedTechs.includes(tech) ? "filled" : "outlined"}
+              sx={{ fontWeight: 600, borderRadius: 2 }}
+            />
+          ))}
+        </Box>
       </Box>
 
       {/* Candidates Grid */}
@@ -153,8 +224,14 @@ export default function Match() {
                     ))}
                   </Box>
 
-                  <Button variant="contained" fullWidth startIcon={<ChatIcon />} sx={{ borderRadius: 2, py: 1, textTransform: 'none', fontWeight: 'bold' }}>
-                    Connect & Chat
+                  <Button 
+                    variant={getCandidateStatus(candidate.id) === 'Pending' ? "outlined" : "contained"}
+                    fullWidth 
+                    startIcon={<ChatIcon />} 
+                    disabled={getCandidateStatus(candidate.id) === 'Pending'}
+                    sx={{ borderRadius: 2, py: 1, textTransform: 'none', fontWeight: 'bold' }}
+                  >
+                    {getCandidateStatus(candidate.id) === 'Pending' ? 'Pending Request' : 'Connect & Chat'}
                   </Button>
                 </Box>
               </CardContent>

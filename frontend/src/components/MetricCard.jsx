@@ -17,6 +17,7 @@ const iconMap = {
   
   // Founder IDs
   listings: <FolderIcon sx={{ fontSize: 26, color: '#f59e0b' }} />,
+  projects: <FolderIcon sx={{ fontSize: 26, color: '#f59e0b' }} />,
   pitches: <SendIcon sx={{ fontSize: 24, color: '#10b981' }} />,
   workspaces: <WorkspaceIcon sx={{ fontSize: 26, color: '#38bdf8' }} />,
   role: <BadgeIcon sx={{ fontSize: 26, color: '#ec4899' }} />
@@ -24,6 +25,7 @@ const iconMap = {
 
 const colors = {
   listings: '#f59e0b',
+  projects: '#f59e0b',
   pitches: '#10b981',
   workspaces: '#38bdf8',
   role: '#ec4899',
@@ -34,6 +36,7 @@ const colors = {
 
 const gradients = {
   listings: 'linear-gradient(135deg, rgba(245, 158, 11, 0.08) 0%, transparent 60%)',
+  projects: 'linear-gradient(135deg, rgba(245, 158, 11, 0.08) 0%, transparent 60%)',
   pitches: 'linear-gradient(135deg, rgba(16, 185, 129, 0.08) 0%, transparent 60%)',
   workspaces: 'linear-gradient(135deg, rgba(56, 189, 248, 0.08) 0%, transparent 60%)',
   role: 'linear-gradient(135deg, rgba(236, 72, 153, 0.08) 0%, transparent 60%)',

@@ -88,95 +88,106 @@ export default function Dashboard() {
     if (!currentUser) return;
 
     const loadCoderMetrics = async () => {
-      try {
+        const isFounder = currentUser.role === 'Founder';
+
         // 1. Get startup projects
         const ideas = await fetchApi("/idea");
+        const availableStartups = Array.isArray(ideas) ? ideas.filter(item => item.userId?._id !== currentUser._id && item.userId !== currentUser._id) : [];
+        const myStartups = Array.isArray(ideas) ? ideas.filter(item => item.userId?._id === currentUser._id || item.userId === currentUser._id) : [];
 
-        // Don't count coder's own startup ideas
-        const availableStartups = Array.isArray(ideas)
-          ? ideas.filter((item) => {
-              const ownerId = item.userId?._id || item.userId;
-              return ownerId !== currentUser._id;
-            })
-          : [];
+        // 2. Get applications (sent for Coder, received for Founder)
+        const applicationsEndpoint = isFounder ? "/applications/received" : "/applications";
+        const applications = await fetchApi(applicationsEndpoint);
+        const allApps = Array.isArray(applications) ? applications : [];
 
-        // 2. Get applications sent by coder
-        const applications = await fetchApi("/applications/sent");
-
-        const sentApplications = Array.isArray(applications)
-          ? applications
-          : [];
-
-        // Count pending applications
-        const pendingApplications = sentApplications.filter(
-          (app) => app.status === "Pending" || app.status === "Under Review",
-        ).length;
+        const pendingApplications = allApps.filter(app => app.status === "Pending" || app.status === "Under Review").length;
+        const acceptedApplications = allApps.filter(app => app.status === "Accepted").length;
 
         // 3. Get workspaces
         const workspaces = await fetchApi("/workspaces");
-
         const activeWorkspaces = Array.isArray(workspaces) ? workspaces : [];
 
-        // 4. Interviews
-        // Use this only if your backend has this endpoint
-        let interviews = [];
-
-        try {
-          const interviewData = await fetchApi("/interviews");
-
-          if (Array.isArray(interviewData)) {
-            interviews = interviewData;
-          }
-        } catch (error) {
-          console.log("Interview API not available yet");
+        // 4. Talents (for Founder Best Matches)
+        let totalTalents = 0;
+        if (isFounder) {
+          try {
+            const talentsData = await fetchApi("/auth/talents");
+            if (Array.isArray(talentsData)) totalTalents = talentsData.length;
+          } catch(e) {}
         }
 
-        const bookedInterviews = interviews.filter(
-          (interview) =>
-            interview.status === "Booked" || interview.status === "Scheduled",
-        ).length;
-
-        // Update cards
-        setCoderStats([
-          {
-            id: "matches",
-            title: "BEST MATCHES",
-            value: availableStartups.length.toString(),
-            change: "Startup opportunities",
-            trend: `${availableStartups.length} available`,
-            isPositive: true,
-          },
-          {
-            id: "applications",
-            title: "ACTIVE PITCHES",
-            value: sentApplications.length.toString(),
-            change: "Applications sent",
-            trend: `${pendingApplications} pending response`,
-            isPositive: true,
-          },
-          {
-            id: "workspaces",
-            title: "WORKSPACES ACTIVE",
-            value: activeWorkspaces.length.toString(),
-            change: "Active teams",
-            trend: `${activeWorkspaces.length} active`,
-            isPositive: true,
-          },
-          {
-            id: "interviews",
-            title: "INTERVIEWS BOOKED",
-            value: bookedInterviews.toString(),
-            change: "Scheduled interviews",
-            trend:
-              bookedInterviews > 0
-                ? `${bookedInterviews} scheduled`
-                : "No upcoming interviews",
-            isPositive: true,
-          },
-        ]);
-      } catch (error) {
-        console.error("Error loading coder dashboard metrics:", error);
-      }
+        // Update cards based on role
+        if (isFounder) {
+          setCoderStats([
+            {
+              id: "matches",
+              title: "AVAILABLE TALENTS",
+              value: totalTalents.toString(),
+              change: "Platform developers",
+              trend: `${totalTalents} total coders`,
+              isPositive: true,
+            },
+            {
+              id: "projects",
+              title: "MY STARTUPS",
+              value: myStartups.length.toString(),
+              change: "Active projects",
+              trend: `${myStartups.length} listed`,
+              isPositive: true,
+            },
+            {
+              id: "workspaces",
+              title: "WORKSPACES ACTIVE",
+              value: activeWorkspaces.length.toString(),
+              change: "Active teams",
+              trend: `${activeWorkspaces.length} active`,
+              isPositive: true,
+            },
+            {
+              id: "interviews",
+              title: "ACCEPTED CANDIDATES",
+              value: acceptedApplications.toString(),
+              change: "Approved developers",
+              trend: acceptedApplications > 0 ? `${acceptedApplications} accepted` : "No accepted candidates yet",
+              isPositive: true,
+            },
+          ]);
+        } else {
+          setCoderStats([
+            {
+              id: "matches",
+              title: "BEST MATCHES",
+              value: availableStartups.length.toString(),
+              change: "Startup opportunities",
+              trend: `${availableStartups.length} available`,
+              isPositive: true,
+            },
+            {
+              id: "applications",
+              title: "ACTIVE PITCHES",
+              value: allApps.length.toString(),
+              change: "Applications sent",
+              trend: `${pendingApplications} pending response`,
+              isPositive: true,
+            },
+            {
+              id: "workspaces",
+              title: "WORKSPACES ACTIVE",
+              value: activeWorkspaces.length.toString(),
+              change: "Active teams",
+              trend: `${activeWorkspaces.length} active`,
+              isPositive: true,
+            },
+            {
+              id: "interviews",
+              title: "ACCEPTED MATCHES",
+              value: acceptedApplications.toString(),
+              change: "Approved partnerships",
+              trend: acceptedApplications > 0 ? `${acceptedApplications} accepted` : "No accepted matches yet",
+              isPositive: true,
+            },
+          ]);
+        }
     };
 
     loadCoderMetrics();
