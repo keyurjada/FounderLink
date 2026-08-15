@@ -47,7 +47,11 @@ export default function Dashboard() {
         const workspaces = await fetchApi('/workspaces');
 
         const otherStartups = Array.isArray(ideas)
-          ? ideas.filter((item) => (item.userId?._id || item.userId) !== currentUser._id)
+          ? ideas.filter((item) => {
+              const isOwn = (item.userId?._id || item.userId) === currentUser._id;
+              const isFull = item.acceptedCount >= item.teamsize;
+              return !isOwn && !isFull;
+            })
           : [];
 
         const myApplications = Array.isArray(applications) ? applications : [];

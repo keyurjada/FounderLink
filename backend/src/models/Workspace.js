@@ -14,7 +14,8 @@ const workspaceSchema = new mongoose.Schema(
     },
     githubLink: { type: String, default: '' },
     figmaLink: { type: String, default: '' },
-    docsLink: { type: String, default: '' }
+    docsLink: { type: String, default: '' },
+    targetLaunchDate: { type: Date }
   },
   {
     timestamps: true

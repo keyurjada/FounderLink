@@ -136,7 +136,14 @@ const updateTask = async (req, res) => {
     const task = await Task.findById(req.params.taskId);
 
     if (task) {
-      if (status) task.status = status;
+      if (status) {
+        task.status = status;
+        if (status === 'completed') {
+          task.completedAt = Date.now();
+        } else {
+          task.completedAt = null;
+        }
+      }
       if (title) task.title = title;
       if (assignee) task.assignee = assignee;
 
@@ -168,7 +175,7 @@ const deleteTask = async (req, res) => {
 
 // Update workspace resources
 const updateWorkspaceResources = async (req, res) => {
-  const { githubLink, figmaLink, docsLink } = req.body;
+  const { githubLink, figmaLink, docsLink, targetLaunchDate } = req.body;
   try {
     const wsId = await resolveWorkspaceId(req.params.id);
     const workspace = await Workspace.findById(wsId);
@@ -178,6 +185,7 @@ const updateWorkspaceResources = async (req, res) => {
     if (githubLink !== undefined) workspace.githubLink = githubLink;
     if (figmaLink !== undefined) workspace.figmaLink = figmaLink;
     if (docsLink !== undefined) workspace.docsLink = docsLink;
+    if (targetLaunchDate !== undefined) workspace.targetLaunchDate = targetLaunchDate;
 
     await workspace.save();
     res.json(workspace);

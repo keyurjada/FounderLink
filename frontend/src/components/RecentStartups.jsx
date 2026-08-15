@@ -38,6 +38,13 @@ const RecentStartups = () => {
     try {
       // Get all startup projects
       const startupData = await fetchApi('/idea');
+      
+      // Filter out startups that are already full or owned by user
+      const validStartups = (Array.isArray(startupData) ? startupData : []).filter(s => {
+        const isFull = s.acceptedCount >= s.teamsize;
+        const isOwn = s.userId?._id === currentUser?._id;
+        return !isFull && !isOwn;
+      });
 
       // Get applications submitted by this coder
       const applicationData = await fetchApi('/applications');
@@ -63,9 +70,7 @@ const RecentStartups = () => {
       console.log("Hidden startup IDs:", hiddenStartupIds);
 
       // Remove accepted/rejected projects from Co-Founder Search Pipeline
-      const availableStartups = (
-        Array.isArray(startupData) ? startupData : []
-      ).filter((startup) => !hiddenStartupIds.has(startup._id));
+      const availableStartups = validStartups.filter((startup) => !hiddenStartupIds.has(startup._id));
 
       const mapped = availableStartups.map(item => ({
         id: item._id,

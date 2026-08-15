@@ -152,9 +152,19 @@ const getIdeas = async (req, res) => {
         "userId",
         "name firstname lastname email role title"
       )
-      .sort({ createdAt: -1 });
+      .sort({ createdAt: -1 })
+      .lean();
 
-    res.json(ideas);
+    const ideasWithCounts = [];
+    for (const idea of ideas) {
+      const acceptedCount = await Application.countDocuments({
+        startupId: idea._id,
+        status: 'Accepted'
+      });
+      ideasWithCounts.push({ ...idea, acceptedCount });
+    }
+
+    res.json(ideasWithCounts);
 
   } catch (error) {
     res.status(500).json({

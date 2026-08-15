@@ -2,12 +2,12 @@ import React, { useState, useEffect, useContext, useRef } from 'react';
 import { 
   Box, Typography, Grid, Paper, Card, CardContent, IconButton, Button, Dialog, DialogTitle, 
   DialogContent, DialogContentText, DialogActions, TextField, FormControl, InputLabel, Select, MenuItem,
-  List, ListItem, ListItemText, ListItemAvatar, Avatar, Divider, Chip, Tooltip
+  List, ListItem, ListItemText, ListItemAvatar, Avatar, Divider, Chip, LinearProgress
 } from '@mui/material';
 import { 
   ArrowForward as MoveRightIcon, ArrowBack as MoveLeftIcon, Add as AddIcon, Delete as DeleteIcon,
   Send as SendIcon, GitHub as GitHubIcon, Dashboard as FigmaIcon, Article as ArticleIcon, Edit as EditIcon,
-  Person as PersonIcon, Launch as LaunchIcon
+  Person as PersonIcon, Launch as LaunchIcon, CheckCircle as CheckCircleIcon, AccessTime as TimeIcon
 } from '@mui/icons-material';
 import { SessionContext } from '../context/SessionProvider.jsx';
 
@@ -21,9 +21,9 @@ export default function Workspaces() {
   const [tasks, setTasks] = useState([]);
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState('');
-  const [resources, setResources] = useState({ githubLink: '', figmaLink: '', docsLink: '' });
+  const [resources, setResources] = useState({ githubLink: '', figmaLink: '', docsLink: '', targetLaunchDate: '' });
   const [isEditingResources, setIsEditingResources] = useState(false);
-  const [editResourcesForm, setEditResourcesForm] = useState({ githubLink: '', figmaLink: '', docsLink: '' });
+  const [editResourcesForm, setEditResourcesForm] = useState({ githubLink: '', figmaLink: '', docsLink: '', targetLaunchDate: '' });
   const chatEndRef = useRef(null);
 
   // Dialog States
@@ -79,12 +79,14 @@ export default function Workspaces() {
       setResources({
         githubLink: activeWorkspace.githubLink || '',
         figmaLink: activeWorkspace.figmaLink || '',
-        docsLink: activeWorkspace.docsLink || ''
+        docsLink: activeWorkspace.docsLink || '',
+        targetLaunchDate: activeWorkspace.targetLaunchDate ? activeWorkspace.targetLaunchDate.split('T')[0] : ''
       });
       setEditResourcesForm({
         githubLink: activeWorkspace.githubLink || '',
         figmaLink: activeWorkspace.figmaLink || '',
-        docsLink: activeWorkspace.docsLink || ''
+        docsLink: activeWorkspace.docsLink || '',
+        targetLaunchDate: activeWorkspace.targetLaunchDate ? activeWorkspace.targetLaunchDate.split('T')[0] : ''
       });
     }
 
@@ -169,23 +171,27 @@ export default function Workspaces() {
     }
   };
 
-  // Resources Handlers
+  // Resources / Pulse Handlers
   const handleSaveResources = async () => {
     if (!selectedStartupId) return;
     setGlobalLoading(true);
     try {
+      const payload = { ...editResourcesForm };
+      if (!payload.targetLaunchDate) delete payload.targetLaunchDate; // don't send empty string if cleared
+
       const updatedWorkspace = await fetchApi(`/workspaces/${selectedStartupId}/resources`, {
         method: 'PUT',
-        body: JSON.stringify(editResourcesForm)
+        body: JSON.stringify(payload)
       });
       setResources({
         githubLink: updatedWorkspace.githubLink || '',
         figmaLink: updatedWorkspace.figmaLink || '',
-        docsLink: updatedWorkspace.docsLink || ''
+        docsLink: updatedWorkspace.docsLink || '',
+        targetLaunchDate: updatedWorkspace.targetLaunchDate ? updatedWorkspace.targetLaunchDate.split('T')[0] : ''
       });
       setIsEditingResources(false);
     } catch (e) {
-      console.error("Failed to update resources", e);
+      console.error("Failed to update resources/pulse", e);
     } finally {
       setGlobalLoading(false);
     }
@@ -201,6 +207,15 @@ export default function Workspaces() {
     let nextIndex = currentIndex + direction;
     if (nextIndex >= 0 && nextIndex < statuses.length) {
       const nextStatus = statuses[nextIndex];
+      
+      // Optomistic UI update (update locally immediately for snappy feel)
+      setTasks(tasks.map(t => {
+        if ((t._id || t.id) === (task._id || task.id)) {
+          return { ...t, status: nextStatus, completedAt: nextStatus === 'completed' ? new Date().toISOString() : null };
+        }
+        return t;
+      }));
+
       try {
         await fetchApi(`/workspaces/${selectedStartupId}/tasks/${task._id || task.id}`, {
           method: 'PUT',
@@ -209,13 +224,6 @@ export default function Workspaces() {
       } catch (e) {
         console.warn("Backend update failed, fallback to local:", e);
       }
-
-      setTasks(tasks.map(t => {
-        if ((t._id || t.id) === (task._id || task.id)) {
-          return { ...t, status: nextStatus };
-        }
-        return t;
-      }));
     }
   };
 
@@ -333,9 +341,7 @@ export default function Workspaces() {
                       {status !== 'completed' && (
                         <IconButton size="small" onClick={() => moveTask(task._id || task.id, 1)} sx={{ p: 0.5 }}><MoveRightIcon sx={{ fontSize: 14 }} /></IconButton>
                       )}
-                      {isFounder && (
-                        <IconButton size="small" color="error" onClick={() => handleOpenDeleteDialog(task._id || task.id)} sx={{ p: 0.5 }}><DeleteIcon sx={{ fontSize: 14 }} /></IconButton>
-                      )}
+                      <IconButton size="small" color="error" onClick={() => handleOpenDeleteDialog(task._id || task.id)} sx={{ p: 0.5 }}><DeleteIcon sx={{ fontSize: 14 }} /></IconButton>
                     </Box>
                   </Box>
                 </CardContent>
@@ -352,6 +358,14 @@ export default function Workspaces() {
     );
   };
 
+  // Derived Pulse Calculations
+  const totalTasksCount = tasks.length;
+  const completedTasks = tasks.filter(t => t.status === 'completed');
+  const completedCount = completedTasks.length;
+  const progressPercent = totalTasksCount > 0 ? Math.round((completedCount / totalTasksCount) * 100) : 0;
+  
+  // Sort by completedAt descending and take top 4
+  const recentWins = [...completedTasks].sort((a, b) => new Date(b.completedAt || 0) - new Date(a.completedAt || 0)).slice(0, 4);
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
@@ -401,25 +415,94 @@ export default function Workspaces() {
         </Paper>
       ) : (
         <>
-          {/* Top Section: Project Resources */}
+          {/* THE PULSE DASHBOARD (New Section) */}
           <Paper sx={{ p: 3, borderRadius: 3, border: '1px solid', borderColor: 'divider', backgroundColor: 'background.paper', backgroundImage: 'none', boxShadow: 'none' }}>
+            <Grid container spacing={4}>
+              
+              {/* Left Side: Progress & Launch Date */}
+              <Grid item xs={12} md={7}>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1.5 }}>
+                   <Typography variant="h6" fontWeight="bold">Project Pulse</Typography>
+                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                     <TimeIcon sx={{ fontSize: 16, color: 'text.secondary' }} />
+                     {isEditingResources ? (
+                       <TextField 
+                         type="date" 
+                         size="small"
+                         value={editResourcesForm.targetLaunchDate}
+                         onChange={(e) => setEditResourcesForm({...editResourcesForm, targetLaunchDate: e.target.value})}
+                         sx={{ width: 140, '& .MuiOutlinedInput-root': { height: 30, fontSize: '13px' } }}
+                       />
+                     ) : (
+                       <Typography variant="body2" color="text.secondary" fontWeight="bold">
+                         Target Launch: {resources.targetLaunchDate ? new Date(resources.targetLaunchDate).toLocaleDateString() : 'Not Set'}
+                       </Typography>
+                     )}
+                   </Box>
+                </Box>
+                
+                <Box sx={{ mb: 1, display: 'flex', justifyContent: 'space-between' }}>
+                  <Typography variant="body2" color="text.secondary">Progress ({completedCount}/{totalTasksCount} tasks)</Typography>
+                  <Typography variant="body2" fontWeight="bold" color="primary.main">{progressPercent}%</Typography>
+                </Box>
+                <LinearProgress 
+                  variant="determinate" 
+                  value={progressPercent} 
+                  sx={{ 
+                    height: 12, 
+                    borderRadius: 6,
+                    backgroundColor: 'rgba(245, 158, 11, 0.15)',
+                    '& .MuiLinearProgress-bar': { backgroundColor: 'primary.main', borderRadius: 6 } 
+                  }} 
+                />
+              </Grid>
+
+              {/* Right Side: Recent Wins Timeline */}
+              <Grid item xs={12} md={5}>
+                <Typography variant="subtitle2" fontWeight="bold" sx={{ mb: 1.5, color: 'text.secondary' }}>Recent Wins 🏆</Typography>
+                {recentWins.length === 0 ? (
+                  <Typography variant="caption" color="text.disabled" sx={{ fontStyle: 'italic' }}>
+                    No completed tasks yet. Keep building!
+                  </Typography>
+                ) : (
+                  <List dense disablePadding>
+                    {recentWins.map(task => (
+                      <ListItem key={task._id || task.id} sx={{ px: 0, py: 0.5 }}>
+                        <ListItemAvatar sx={{ minWidth: 32 }}>
+                          <CheckCircleIcon color="success" sx={{ fontSize: 20 }} />
+                        </ListItemAvatar>
+                        <ListItemText 
+                          primary={task.title}
+                          primaryTypographyProps={{ variant: 'body2', fontWeight: 500 }}
+                          secondary={`by @${task.assignee} ${task.completedAt ? new Date(task.completedAt).toLocaleDateString() : ''}`}
+                          secondaryTypographyProps={{ variant: 'caption', color: 'text.disabled' }}
+                        />
+                      </ListItem>
+                    ))}
+                  </List>
+                )}
+              </Grid>
+            </Grid>
+          </Paper>
+
+          {/* Project Resources */}
+          <Paper sx={{ p: 2.5, borderRadius: 3, border: '1px solid', borderColor: 'divider', backgroundColor: 'background.paper', backgroundImage: 'none', boxShadow: 'none' }}>
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-              <Typography variant="subtitle1" fontWeight="bold" sx={{ color: 'primary.main' }}>
-                Project Resources
+              <Typography variant="subtitle2" fontWeight="bold" sx={{ color: 'text.secondary', textTransform: 'uppercase', letterSpacing: 1 }}>
+                Resources & Links
               </Typography>
               {isFounder && !isEditingResources && (
                 <Button size="small" startIcon={<EditIcon />} onClick={() => setIsEditingResources(true)} sx={{ textTransform: 'none', borderRadius: 2 }}>
-                  Edit Links
+                  Edit Details
                 </Button>
               )}
               {isFounder && isEditingResources && (
                 <Box sx={{ display: 'flex', gap: 1 }}>
                   <Button size="small" variant="outlined" onClick={() => setIsEditingResources(false)} sx={{ textTransform: 'none', borderRadius: 2 }}>Cancel</Button>
-                  <Button size="small" variant="contained" onClick={handleSaveResources} sx={{ textTransform: 'none', borderRadius: 2 }}>Save Links</Button>
+                  <Button size="small" variant="contained" onClick={handleSaveResources} sx={{ textTransform: 'none', borderRadius: 2 }}>Save Details</Button>
                 </Box>
               )}
             </Box>
-            <Divider sx={{ mb: 3 }} />
             
             <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
               <ResourceItem icon={<GitHubIcon />} title="GitHub Repository" type="githubLink" link={resources.githubLink} />
@@ -439,12 +522,10 @@ export default function Workspaces() {
             <Grid item xs={12} md={7} lg={8}>
               <Paper sx={{ p: 2, borderRadius: 3, border: '1px solid', borderColor: 'divider', backgroundColor: 'background.paper', backgroundImage: 'none', boxShadow: 'none', height: '100%', display: 'flex', flexDirection: 'column' }}>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2, px: 1 }}>
-                  <Typography variant="subtitle1" fontWeight="bold">Milestones & Tasks</Typography>
-                  {isFounder && (
-                    <Button size="small" startIcon={<AddIcon />} variant="outlined" onClick={() => setDialogOpen(true)} sx={{ borderRadius: 2, textTransform: 'none' }}>
-                      New Task
-                    </Button>
-                  )}
+                  <Typography variant="subtitle1" fontWeight="bold">Task Board</Typography>
+                  <Button size="small" startIcon={<AddIcon />} variant="outlined" onClick={() => setDialogOpen(true)} sx={{ borderRadius: 2, textTransform: 'none' }}>
+                    New Task
+                  </Button>
                 </Box>
                 <Grid container spacing={2} sx={{ flexGrow: 1, alignItems: 'stretch' }}>
                   {renderTaskLane('todo', 'To Do', 'text.secondary')}

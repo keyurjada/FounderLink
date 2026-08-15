@@ -50,14 +50,14 @@ export default function Match() {
         console.log("Startup ideas:", data);
 
         if (Array.isArray(data)) {
-          // Optional: don't show the coder's own ideas
-          const otherStartups = data.filter((item) => {
+          // Optional: don't show the coder's own ideas or fulfilled ideas
+          const validStartups = data.filter((item) => {
             const ownerId = item.userId?._id || item.userId;
-
-            return ownerId !== currentUser?._id;
+            const isFull = item.acceptedCount >= item.teamsize;
+            return ownerId !== currentUser?._id && !isFull;
           });
 
-          setStartups(otherStartups);
+          setStartups(validStartups);
         } else {
           setStartups([]);
         }
