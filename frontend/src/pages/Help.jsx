@@ -9,7 +9,7 @@ const faqs = [
   },
   {
     q: "How do I review applications from coders?",
-    a: "Check the 'Review Received Applications' tab on your dashboard. From there, you can view the coder's profile, read their pitch, and choose to accept or reject their application."
+    a: "Check the 'Review Received Applications' tab on your dashboard. From there, you can view the coder's profile, read their application, and choose to accept or reject their application."
   },
   {
     q: "What happens when I accept an application?",

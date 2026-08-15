@@ -109,7 +109,7 @@ export default function Applications() {
         <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
           {isFounder 
             ? "Review and approve/reject co-founder applications submitted by developers to join your startup projects." 
-            : "Track and manage your submitted pitches, partnership applications, and co-founder match status."}
+            : "Track and manage your submitted applications, partnership requests, and co-founder match status."}
         </Typography>
       </Box>
 
@@ -130,7 +130,7 @@ export default function Applications() {
             <TableRow sx={{ borderBottom: '1px solid', borderColor: 'divider' }}>
               <TableCell sx={{ fontWeight: 'bold', color: 'text.secondary' }}>Startup</TableCell>
               <TableCell sx={{ fontWeight: 'bold', color: 'text.secondary' }}>{isFounder ? "Applicant" : "Founder"}</TableCell>
-              <TableCell sx={{ fontWeight: 'bold', color: 'text.secondary' }}>Resume & Pitch</TableCell>
+              <TableCell sx={{ fontWeight: 'bold', color: 'text.secondary' }}>Resume & Application</TableCell>
               <TableCell sx={{ fontWeight: 'bold', color: 'text.secondary' }}>Status</TableCell>
               <TableCell align="right" sx={{ fontWeight: 'bold', color: 'text.secondary' }}>Actions</TableCell>
             </TableRow>
@@ -228,7 +228,7 @@ export default function Applications() {
         </Table>
       </TableContainer>
 
-      {/* Delete Pitch Confirmation Dialog */}
+      {/* Delete Application Confirmation Dialog */}
       <Dialog
         open={deleteDialogOpen}
         onClose={handleCancelDelete}

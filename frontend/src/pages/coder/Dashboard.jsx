@@ -11,7 +11,7 @@ export default function Dashboard() {
   const { currentUser, fetchApi } = useContext(SessionContext);
   const [stats, setStats] = useState([
     { id: 'matches', title: 'Best Matches', value: '0', trend: '0 startup opportunities', color: '#10b981' },
-    { id: 'applications', title: 'Active Pitches', value: '0', trend: '0 pending response', color: '#f59e0b' },
+    { id: 'applications', title: 'Active Applications', value: '0', trend: '0 pending response', color: '#f59e0b' },
     { id: 'workspaces', title: 'Workspaces Active', value: '0', trend: '0 active', color: '#a855f7' },
     { id: 'role', title: 'Tech Stack Added', value: '0', trend: 'Listed in profile', color: '#ec4899' }
   ]);
@@ -68,7 +68,7 @@ export default function Dashboard() {
           },
           {
             id: 'applications',
-            title: 'Active Pitches',
+            title: 'Active Applications',
             value: myApplications.length.toString(),
             trend: `${pendingApplications} pending response`,
             color: '#f59e0b'

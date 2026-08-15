@@ -37,7 +37,7 @@ export default function Dashboard() {
     },
     {
       id: "applications",
-      title: "ACTIVE PITCHES",
+      title: "ACTIVE APPLICATIONS",
       value: "0",
       change: "Applications sent",
       trend: "0 pending response",
@@ -164,7 +164,7 @@ export default function Dashboard() {
             },
             {
               id: "applications",
-              title: "ACTIVE PITCHES",
+              title: "ACTIVE APPLICATIONS",
               value: allApps.length.toString(),
               change: "Applications sent",
               trend: `${pendingApplications} pending response`,

@@ -201,7 +201,7 @@ export default function Applications() {
         </Table>
       </TableContainer>
 
-      {/* Delete Pitch Confirmation Dialog */}
+      {/* Delete Application Confirmation Dialog */}
       <Dialog
         open={deleteDialogOpen}
         onClose={handleCancelDelete}
